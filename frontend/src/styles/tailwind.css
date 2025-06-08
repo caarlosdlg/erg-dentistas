@@ -1,0 +1,251 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos base personalizados para DentalERP */
+@layer base {
+  /* Configuración de fuentes */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap');
+  
+  html {
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+    line-height: 1.6;
+  }
+
+  /* Tipografía mejorada */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-primary font-semibold text-neutral-900;
+    line-height: 1.25;
+  }
+
+  h1 {
+    @apply text-3xl lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl lg:text-3xl;
+  }
+
+  h3 {
+    @apply text-xl lg:text-2xl;
+  }
+
+  h4 {
+    @apply text-lg lg:text-xl;
+  }
+
+  h5 {
+    @apply text-base lg:text-lg;
+  }
+
+  h6 {
+    @apply text-sm lg:text-base;
+  }
+
+  p {
+    @apply text-neutral-600;
+    line-height: 1.6;
+  }
+
+  /* Elementos de formulario */
+  input, textarea, select {
+    @apply transition-colors duration-200;
+  }
+
+  /* Focus rings mejorados */
+  input:focus,
+  textarea:focus,
+  select:focus,
+  button:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-opacity-50;
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-neutral-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400 rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-neutral-500;
+  }
+}
+
+/* Componentes reutilizables */
+@layer components {
+  /* Botones base */
+  .btn-base {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply btn-base bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-outline {
+    @apply btn-base border-2 border-primary-500 text-primary-500 hover:bg-primary-50 focus:ring-primary-500;
+  }
+
+  .btn-ghost {
+    @apply btn-base text-primary-500 hover:bg-primary-50 focus:ring-primary-500;
+  }
+
+  .btn-danger {
+    @apply btn-base bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-success {
+    @apply btn-base bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-warning {
+    @apply btn-base bg-yellow-500 text-white hover:bg-yellow-600 focus:ring-yellow-500 shadow-sm hover:shadow-md;
+  }
+
+  .btn-info {
+    @apply btn-base bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-500 shadow-sm hover:shadow-md;
+  }
+
+  /* Tarjetas */
+  .card-base {
+    @apply bg-white rounded-xl shadow-card border border-neutral-200 transition-all duration-200;
+  }
+
+  .card-default {
+    @apply bg-white border border-neutral-200 shadow-sm;
+  }
+
+  .card-elevated {
+    @apply bg-white border border-neutral-200 shadow-md;
+  }
+
+  .card-outlined {
+    @apply bg-white border-2 border-neutral-300 shadow-none;
+  }
+
+  .card-filled {
+    @apply bg-neutral-50 border border-neutral-200 shadow-none;
+  }
+
+  /* Inputs */
+  .input-base {
+    @apply w-full px-4 py-3 border border-neutral-300 rounded-lg bg-white text-neutral-900 placeholder-neutral-400 transition-all duration-200 focus:border-primary-500 focus:ring-2 focus:ring-primary-100;
+  }
+
+  .input-default {
+    @apply border-neutral-300 focus:border-primary-500 focus:ring-primary-500;
+  }
+
+  .input-error {
+    @apply border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500;
+  }
+
+  /* Badges */
+  .badge-base {
+    @apply inline-flex items-center font-medium rounded-full transition-colors duration-200;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-800;
+  }
+
+  .badge-secondary {
+    @apply bg-secondary-100 text-secondary-800;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-800;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-800;
+  }
+}
+
+/* Utilidades personalizadas */
+@layer utilities {
+  /* Estados de carga */
+  .state-loading {
+    @apply animate-pulse bg-neutral-200;
+  }
+
+  .state-empty {
+    @apply text-neutral-400 text-center py-8;
+  }
+
+  /* Gradientes personalizados */
+  .gradient-dental {
+    background: linear-gradient(135deg, #0066cc 0%, #009951 100%);
+  }
+
+  .gradient-dental-light {
+    background: linear-gradient(135deg, #e6f3ff 0%, #e6f7f1 100%);
+  }
+
+  /* Efectos de cristal */
+  .glass-effect {
+    @apply bg-white bg-opacity-10 backdrop-blur-md border border-white border-opacity-20;
+  }
+
+  /* Truncate con tooltip */
+  .truncate-tooltip {
+    @apply truncate cursor-help relative;
+  }
+
+  .truncate-tooltip:hover::after {
+    @apply absolute z-10 px-2 py-1 text-xs text-white bg-neutral-900 rounded shadow-lg opacity-100 pointer-events-none;
+    content: attr(title);
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 4px;
+  }
+
+  /* Utilidades de layout */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .flex-end {
+    @apply flex items-center justify-end;
+  }
+
+  /* Utilidades responsive */
+  .show-mobile {
+    @apply block md:hidden;
+  }
+
+  .show-desktop {
+    @apply hidden md:block;
+  }
+}
