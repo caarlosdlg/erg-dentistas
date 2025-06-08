@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'facturacion',
     'categorias',
     'reviews',
+    'imagenes',
 ]
 
 MIDDLEWARE = [
