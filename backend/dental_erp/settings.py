@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'mptt',
     'django_filters',
+    'compressor',  # Django Compressor para optimización de CSS/JS
     
     # Apps del ERP Dental
     'dentistas',
@@ -60,12 +61,21 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # WhiteNoise debe ir después de SecurityMiddleware y antes de todo lo demás
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # Middleware para caché - se agrega para procesar las respuestas
+    'django.middleware.gzip.GZipMiddleware',  # Compresión para reducir tamaño de respuestas
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Middleware para CORS
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Middleware personalizado para encabezados de archivos estáticos en producción
+    'dental_erp.middleware.StaticFilesHeadersMiddleware',
+    # Middleware para minificar HTML en producción
+    'dental_erp.html_middleware.HTMLMinifyMiddleware',
 ]
 
 ROOT_URLCONF = 'dental_erp.urls'
@@ -81,6 +91,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Procesador personalizado para variables estáticas
+                'dental_erp.context_processors.static_context',
             ],
         },
     },
@@ -148,7 +160,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL se define más abajo en la sección de configuración de archivos estáticos
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -171,11 +183,66 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-# Configuración de archivos estáticos para producción
+# Configuración de archivos estáticos
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# Configuración avanzada de archivos estáticos
+# Configuración de finders - incluye el buscador de compressor
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+]
+
+# Versión de archivos estáticos para cache busting manual
+import uuid
+STATIC_VERSION = str(uuid.uuid4())[:8]
+
+# Configuración diferente para desarrollo vs producción
+if not DEBUG:
+    # Determinar el almacenamiento a utilizar según la configuración
+    USE_CUSTOM_STORAGE = config('USE_CUSTOM_STORAGE', default=True, cast=bool)
+    
+    if USE_CUSTOM_STORAGE:
+        # Usar nuestro almacenamiento optimizado personalizado
+        STATICFILES_STORAGE = 'dental_erp.storage_extensions.OptimizedManifestStaticFilesStorage'
+    else:
+        # Usar WhiteNoise para servir archivos estáticos versionados en producción
+        STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    
+    # Habilitar almacenamiento en memoria caché de archivos estáticos para optimizar rendimiento
+    WHITENOISE_USE_FINDERS = False
+    
+    # Configuración para subresource integrity (SRI)
+    # Requiere WhiteNoise >= 5.0
+    WHITENOISE_ADD_HEADERS_FUNCTION = 'dental_erp.cache_settings.get_cache_headers'
+    
+    # Tiempo de caché para archivos estáticos (1 año)
+    STATIC_FILES_CACHE_TIMEOUT = 31536000
+    
+    # Configuraciones de WhiteNoise para producción
+    WHITENOISE_MIDDLEWARE = {
+        'max_age': 60 * 60 * 24 * 365,  # 1 año en segundos
+        'allow_all_origins': False,
+        'add_headers_function': None,
+    }
+    
+    # Configuración de compresión para WhiteNoise
+    WHITENOISE_COMPRESS_LEVEL = 9  # Nivel máximo de compresión gzip (1-9)
+    WHITENOISE_BROTLI = True       # Habilitar compresión Brotli (más eficiente que gzip)
+    
+    # Configuración de cache-control para archivos estáticos
+    WHITENOISE_MAX_AGE = 60 * 60 * 24 * 365  # 1 año en segundos
+    
+    # Configuración para no servir archivos estáticos no encontrados
+    WHITENOISE_SKIP_MISSING_FILES = False
+else:
+    # Configuración para desarrollo - más simple
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Configuración de Django REST Framework
 REST_FRAMEWORK = {
@@ -224,3 +291,113 @@ SEND_HELPFUL_NOTIFICATIONS = config('SEND_HELPFUL_NOTIFICATIONS', default=False,
 # Notification Email Settings
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@dentalerp.com')
 NOTIFICATION_EMAIL_FROM = config('NOTIFICATION_EMAIL_FROM', default='notifications@dentalerp.com')
+
+# Configuración de django-compressor para minimizar CSS y JS
+COMPRESS_ENABLED = not DEBUG
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.rCSSMinFilter',
+]
+COMPRESS_JS_FILTERS = [
+    'compressor.filters.jsmin.JSMinFilter',
+]
+COMPRESS_OUTPUT_DIR = 'compressed'
+COMPRESS_STORAGE = STATICFILES_STORAGE
+COMPRESS_OFFLINE = not DEBUG
+COMPRESS_OFFLINE_CONTEXT = {
+    'STATIC_URL': STATIC_URL,
+    'MEDIA_URL': MEDIA_URL,
+}
+
+# Configuración del sistema de caché
+# En desarrollo usamos caché en memoria, en producción recomendamos Redis o Memcached
+if DEBUG:
+    # Caché en memoria para desarrollo
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'dental-erp-cache',
+        }
+    }
+else:
+    # Caché para producción - usar Redis si está disponible, sino archivo
+    REDIS_URL = config('REDIS_URL', default=None)
+    
+    if REDIS_URL:
+        # Configuración para Redis
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+                'LOCATION': REDIS_URL,
+                'OPTIONS': {
+                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                    'IGNORE_EXCEPTIONS': True,
+                }
+            }
+        }
+    else:
+        # Caché basada en archivos como fallback
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+                'LOCATION': os.path.join(BASE_DIR, 'django_cache'),
+                'TIMEOUT': 60 * 60 * 24,  # 24 horas
+                'OPTIONS': {
+                    'MAX_ENTRIES': 1000
+                }
+            }
+        }
+
+# Configuraciones de caché para diferentes partes del sistema
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutos por defecto
+CACHE_MIDDLEWARE_KEY_PREFIX = 'dental_erp'
+
+# Configuración de almacenamiento en la nube (AWS S3)
+# Estas configuraciones solo se aplican en producción
+if not DEBUG:
+    USE_S3 = config('USE_S3', cast=bool, default=False)
+    
+    if USE_S3:
+        # Configuración AWS S3
+        AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+        AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+        AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='dental-erp-files')
+        AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+        AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', 
+                                      default=f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com')
+        
+        # Configuración de ubicación de archivos
+        STATICFILES_LOCATION = 'static'
+        MEDIAFILES_LOCATION = 'media'
+        
+        # Configuración de storages
+        DEFAULT_FILE_STORAGE = 'dental_erp.storage_backends.MediaFileStorage'
+        STATICFILES_STORAGE = 'dental_erp.storage_backends.StaticFileStorage'
+        
+        # Configuración de caché para S3
+        AWS_S3_OBJECT_PARAMETERS = {
+            'CacheControl': 'max-age=86400',  # 1 día para archivos media
+        }
+        
+        # Para archivos estáticos, caché más agresivo
+        AWS_STATIC_OBJECT_PARAMETERS = {
+            'CacheControl': 'max-age=31536000',  # 1 año para archivos estáticos
+        }
+        
+        # Seguridad S3
+        AWS_DEFAULT_ACL = 'public-read'
+        AWS_QUERYSTRING_AUTH = False  # No usar autenticación en URLs
+        
+        # Configuración de CDN si está habilitado
+        USE_CDN = config('USE_CDN', cast=bool, default=False)
+        if USE_CDN:
+            CDN_DOMAIN = config('CDN_DOMAIN', default='')
+            if CDN_DOMAIN:
+                # Usa el dominio CDN para servir archivos estáticos
+                STATIC_URL = f'https://{CDN_DOMAIN}/{STATICFILES_LOCATION}/'
+                MEDIA_URL = f'https://{CDN_DOMAIN}/{MEDIAFILES_LOCATION}/'
+        else:
+            # Usa el dominio S3 directamente
+            STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{STATICFILES_LOCATION}/'
+            MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{MEDIAFILES_LOCATION}/'

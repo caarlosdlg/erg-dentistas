@@ -24,7 +24,7 @@ La API de imágenes ya está configurada con:
 El modelo `Image` tiene los siguientes campos:
 
 - `id` (UUID): Identificador único de la imagen
-- `image`: Campo para el archivo de imagen
+- `image`: Campo para el archivo de imagen original
 - `content_type`: Tipo de contenido ('paciente', 'dentista', 'tratamiento', etc.)
 - `object_id`: ID del objeto relacionado
 - `title`: Título opcional
@@ -34,6 +34,21 @@ El modelo `Image` tiene los siguientes campos:
 - `is_active`: Indica si la imagen está activa
 - `is_featured`: Indica si la imagen es destacada
 - `order`: Orden de visualización
+
+### Campos para Optimización de Imágenes
+
+La versión optimizada del modelo incluye campos adicionales:
+
+- `thumbnail_url`: URL del thumbnail (150px de ancho)
+- `thumbnail_webp_url`: URL del thumbnail en formato WebP
+- `medium_url`: URL de la versión mediana (400px de ancho)
+- `medium_webp_url`: URL de la versión mediana en formato WebP
+- `large_url`: URL de la versión grande (800px de ancho)
+- `large_webp_url`: URL de la versión grande en formato WebP
+- `width`: Ancho de la imagen original en píxeles
+- `height`: Alto de la imagen original en píxeles
+- `file_size`: Tamaño del archivo en bytes
+- `optimized`: Indica si la imagen ha sido optimizada
 
 ## Endpoints de la API
 
@@ -175,6 +190,48 @@ curl -X POST \
 
 - Requiere permisos de administrador
 
+### 6. Optimizar una Imagen
+
+**Endpoint**: `POST /api/images/{id}/optimize/`
+
+Este endpoint permite regenerar las versiones optimizadas de una imagen específica. Es útil si se necesitan actualizar los thumbnails o si la imagen fue subida antes de implementar la optimización.
+
+- Requiere permisos de administrador
+- No requiere parámetros
+
+**Ejemplo de respuesta**:
+```json
+{
+  "status": "success",
+  "message": "Las versiones optimizadas han sido regeneradas",
+  "image": {
+    // Datos completos de la imagen con URLs actualizadas
+  }
+}
+```
+
+### 7. Optimización por Lotes
+
+**Endpoint**: `POST /api/images/batch-optimize/`
+
+Este endpoint permite regenerar las versiones optimizadas de un conjunto de imágenes.
+
+- Requiere permisos de administrador
+
+**Parámetros opcionales**:
+- `content_type`: Filtrar por tipo de contenido
+- `object_id`: Filtrar por ID de objeto
+
+**Ejemplo de respuesta**:
+```json
+{
+  "status": "completed",
+  "processed": 15,
+  "errors": 0,
+  "total": 15
+}
+```
+
 ## Validación de Imágenes
 
 La API valida automáticamente:
@@ -187,6 +244,19 @@ La API valida automáticamente:
 
 2. **Tamaño máximo**: 5 MB
 
+## Optimización de Imágenes
+
+El sistema optimiza automáticamente las imágenes subidas:
+
+1. **Generación de versiones redimensionadas**:
+   - Thumbnail (150px de ancho)
+   - Medio (400px de ancho)
+   - Grande (800px de ancho)
+
+2. **Conversión a formato WebP** para mejor compresión y rendimiento
+
+3. **Almacenamiento de metadatos** como dimensiones y tamaño para ayudar al frontend a mostrar la imagen correctamente
+
 ## Uso en Aplicaciones Cliente
 
 Para integrar esta API en aplicaciones cliente:
@@ -194,6 +264,7 @@ Para integrar esta API en aplicaciones cliente:
 ### React/JavaScript:
 
 ```javascript
+// Función para subir una imagen
 const uploadImage = async (imageFile, contentType, objectId, title, description) => {
   const formData = new FormData();
   formData.append('image', imageFile);
@@ -223,6 +294,78 @@ const uploadImage = async (imageFile, contentType, objectId, title, description)
     console.error('Error:', error);
     return null;
   }
+};
+
+// Componente de imagen optimizada con soporte para imágenes WebP y fallback
+const OptimizedImage = ({ image, alt, className }) => {
+  // Verificar soporte de WebP en el navegador
+  const supportsWebP = () => {
+    const elem = document.createElement('canvas');
+    if (elem.getContext && elem.getContext('2d')) {
+      return elem.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    }
+    return false;
+  };
+  
+  // Si la imagen no está optimizada, usar la imagen original
+  if (!image || !image.optimized) {
+    return <img src={image?.image_url} alt={alt || image?.title} className={className} />;
+  }
+
+  // Seleccionar el tamaño adecuado según el contexto
+  // Aquí puedes implementar la lógica para elegir entre thumbnail, medium o large
+  const getResponsiveSources = () => {
+    const hasWebP = supportsWebP();
+    
+    return {
+      small: hasWebP ? image.thumbnail_webp_url : image.thumbnail_url,
+      medium: hasWebP ? image.medium_webp_url : image.medium_url,
+      large: hasWebP ? image.large_webp_url : image.large_url,
+      original: image.image_url
+    };
+  };
+  
+  const sources = getResponsiveSources();
+  
+  // Usar picture para ofrecer las versiones WebP con fallback a formatos tradicionales
+  return (
+    <picture>
+      {/* Fuente WebP para navegadores que lo soportan */}
+      {supportsWebP() && (
+        <>
+          <source
+            media="(max-width: 400px)"
+            srcSet={image.thumbnail_webp_url}
+            type="image/webp"
+          />
+          <source
+            media="(max-width: 800px)"
+            srcSet={image.medium_webp_url}
+            type="image/webp"
+          />
+          <source
+            srcSet={image.large_webp_url}
+            type="image/webp"
+          />
+        </>
+      )}
+      
+      {/* Fallback para navegadores que no soportan WebP */}
+      <source media="(max-width: 400px)" srcSet={image.thumbnail_url} />
+      <source media="(max-width: 800px)" srcSet={image.medium_url} />
+      <source srcSet={image.large_url} />
+      
+      {/* Imagen final de fallback */}
+      <img
+        src={image.image_url}
+        alt={alt || image.title}
+        className={className}
+        width={image.dimensions?.width}
+        height={image.dimensions?.height}
+        loading="lazy"
+      />
+    </picture>
+  );
 };
 ```
 

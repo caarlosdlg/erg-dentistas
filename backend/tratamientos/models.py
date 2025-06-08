@@ -53,6 +53,12 @@ class Tratamiento(models.Model):
         verbose_name = "Tratamiento"
         verbose_name_plural = "Tratamientos"
         ordering = ['categoria__nombre', 'nombre']
+        indexes = [
+            models.Index(fields=['nombre'], name='tratamiento_nombre_idx'),
+            models.Index(fields=['codigo'], name='tratamiento_codigo_idx'),
+            models.Index(fields=['activo'], name='tratamiento_activo_idx'),
+            models.Index(fields=['categoria'], name='tratamiento_categoria_idx'),
+        ]
     
     def __str__(self):
         return f"{self.codigo} - {self.nombre}"

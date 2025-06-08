@@ -1,0 +1,252 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Búsqueda - Dental ERP{% endblock %}
+
+{% block extrahead %}
+<style>
+    .search-container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .search-form {
+        display: flex;
+        margin-bottom: 30px;
+    }
+    .search-input {
+        flex: 1;
+        padding: 10px 15px;
+        font-size: 16px;
+        border: 1px solid #ddd;
+        border-radius: 4px 0 0 4px;
+    }
+    .search-button {
+        padding: 10px 20px;
+        background-color: #447e9b;
+        color: white;
+        border: none;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .search-button:hover {
+        background-color: #366b81;
+    }
+    .results-container {
+        margin-top: 20px;
+    }
+    .result-section {
+        margin-bottom: 30px;
+    }
+    .result-section h3 {
+        color: #447e9b;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .result-item {
+        padding: 15px;
+        border: 1px solid #eee;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    .result-item:hover {
+        border-color: #447e9b;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .item-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .item-meta {
+        color: #666;
+        font-size: 0.9em;
+    }
+    .filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    .checkbox-group {
+        display: flex;
+        align-items: center;
+    }
+    .checkbox-group input {
+        margin-right: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="search-container">
+    <h2>Búsqueda en el Sistema</h2>
+    
+    <form id="searchForm" class="search-form">
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar categorías, tratamientos..." required>
+        <button type="submit" class="search-button">Buscar</button>
+    </form>
+    
+    <div class="filters">
+        <div class="checkbox-group">
+            <input type="checkbox" id="includeCategories" checked>
+            <label for="includeCategories">Categorías</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="includeTratamientos" checked>
+            <label for="includeTratamientos">Tratamientos</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="includePacientes">
+            <label for="includePacientes">Pacientes</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="activeOnly" checked>
+            <label for="activeOnly">Solo activos</label>
+        </div>
+    </div>
+    
+    <div id="resultsContainer" class="results-container">
+        <p id="noResults">Ingresa un término de búsqueda para ver resultados.</p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const noResults = document.getElementById('noResults');
+    
+    // Checkboxes
+    const includeCategories = document.getElementById('includeCategories');
+    const includeTratamientos = document.getElementById('includeTratamientos');
+    const includePacientes = document.getElementById('includePacientes');
+    const activeOnly = document.getElementById('activeOnly');
+    
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const query = searchInput.value.trim();
+        
+        if (query) {
+            performSearch(query);
+        }
+    });
+    
+    function performSearch(query) {
+        noResults.textContent = 'Buscando...';
+        
+        // Construir tipos a incluir
+        let includeTypes = [];
+        if (includeCategories.checked) includeTypes.push('categories');
+        if (includeTratamientos.checked) includeTypes.push('tratamientos');
+        if (includePacientes.checked) includeTypes.push('pacientes');
+        
+        // Si no se seleccionó ningún tipo, mostrar mensaje
+        if (includeTypes.length === 0) {
+            noResults.textContent = 'Selecciona al menos un tipo de contenido para buscar.';
+            return;
+        }
+        
+        // Construir URL
+        const url = `/api/search/global/?q=${encodeURIComponent(query)}&active_only=${activeOnly.checked}&include=${includeTypes.join(',')}`;
+        
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la búsqueda');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayResults(data);
+            })
+            .catch(error => {
+                noResults.textContent = `Error: ${error.message}`;
+            });
+    }
+    
+    function displayResults(data) {
+        // Limpiar contenedor
+        resultsContainer.innerHTML = '';
+        
+        const totalResults = data.total_results || 0;
+        
+        if (totalResults === 0) {
+            const noResultsElement = document.createElement('p');
+            noResultsElement.textContent = 'No se encontraron resultados para tu búsqueda.';
+            resultsContainer.appendChild(noResultsElement);
+            return;
+        }
+        
+        // Mostrar resumen
+        const summaryElement = document.createElement('p');
+        summaryElement.textContent = `Se encontraron ${totalResults} resultados para "${data.query}":`;
+        resultsContainer.appendChild(summaryElement);
+        
+        // Mostrar resultados por sección
+        for (const [type, typeData] of Object.entries(data.results)) {
+            if (typeData.count > 0) {
+                const sectionElement = document.createElement('div');
+                sectionElement.className = 'result-section';
+                
+                // Título de la sección
+                const titleElement = document.createElement('h3');
+                titleElement.textContent = getTypeName(type) + ` (${typeData.count})`;
+                sectionElement.appendChild(titleElement);
+                
+                // Elementos de resultado
+                typeData.results.forEach(item => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+                    
+                    // Contenido según tipo
+                    if (type === 'categories') {
+                        resultItem.innerHTML = `
+                            <div class="item-title">${item.name}</div>
+                            <div class="item-meta">
+                                Ruta: ${item.full_path}<br>
+                                ${item.description ? 'Descripción: ' + item.description : ''}
+                            </div>
+                        `;
+                    } else if (type === 'tratamientos') {
+                        resultItem.innerHTML = `
+                            <div class="item-title">${item.nombre} (${item.codigo})</div>
+                            <div class="item-meta">
+                                Categoría: ${item.categoria.nombre}<br>
+                                Precio base: ${item.precio_base}€<br>
+                                Duración: ${item.duracion_estimada} min
+                            </div>
+                        `;
+                    } else if (type === 'pacientes') {
+                        resultItem.innerHTML = `
+                            <div class="item-title">${item.nombre_completo}</div>
+                            <div class="item-meta">
+                                Expediente: ${item.numero_expediente}<br>
+                                Contacto: ${item.email} | ${item.telefono}
+                            </div>
+                        `;
+                    }
+                    
+                    sectionElement.appendChild(resultItem);
+                });
+                
+                resultsContainer.appendChild(sectionElement);
+            }
+        }
+    }
+    
+    function getTypeName(type) {
+        const types = {
+            'categories': 'Categorías',
+            'tratamientos': 'Tratamientos',
+            'pacientes': 'Pacientes'
+        };
+        return types[type] || type;
+    }
+});
+</script>
+{% endblock %}

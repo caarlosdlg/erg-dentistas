@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dental ERP{% endblock %}</title>
+    
+    <!-- Meta tags para optimización de SEO y social sharing -->
+    <meta name="description" content="{% block meta_description %}Sistema ERP para clínicas dentales{% endblock %}">
+    <meta name="author" content="Dental ERP Team">
+    
+    <!-- Preconexión a dominios externos para optimizar carga -->
+    {% if use_cdn %}
+    <link rel="preconnect" href="{{ cdn_domain }}" crossorigin>
+    {% endif %}
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{% block favicon %}{% endblock %}" type="image/x-icon">
+    
+    <!-- CSS base -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- CSS personalizado -->
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Precarga de recursos críticos -->
+    {% block preload %}{% endblock %}
+    
+    <!-- Scripts en el encabezado (mínimos) -->
+    {% block head_scripts %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Contenido principal -->
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container">
+                <a class="navbar-brand" href="#">Dental ERP</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Inicio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Pacientes</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Dentistas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Citas</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Tratamientos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#">Galería</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer class="bg-light text-center py-4 mt-5">
+        <div class="container">
+            <p>&copy; {% now "Y" %} Dental ERP. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+    
+    <!-- Scripts al final del documento -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Scripts personalizados -->
+    {% block extra_scripts %}{% endblock %}
+    
+    <!-- Script para manejar la carga de imágenes -->
+    <script>
+        // Verificar soporte para lazy loading nativo
+        if ('loading' in HTMLImageElement.prototype) {
+            console.log('El navegador soporta lazy loading nativo');
+        } else {
+            // Si no hay soporte, cargar polyfill (en una situación real)
+            console.log('El navegador no soporta lazy loading nativo');
+            // loadPolyfill();
+        }
+        
+        // Función para verificar cuando las imágenes están visibles
+        document.addEventListener('DOMContentLoaded', function() {
+            const lazyImages = document.querySelectorAll('.gallery-img');
+            
+            lazyImages.forEach(img => {
+                img.addEventListener('load', function() {
+                    this.classList.add('loaded');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

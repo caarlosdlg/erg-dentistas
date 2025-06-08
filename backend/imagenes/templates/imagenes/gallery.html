@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load static %}
+{% load image_tags %}
+
+{% block title %}Galería de Imágenes Optimizadas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/image-gallery.css' %}">
+<style>
+    .demo-section {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .demo-section h2 {
+        margin-bottom: 1rem;
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 0.5rem;
+    }
+    
+    .demo-section p {
+        margin-bottom: 1.5rem;
+        color: #34495e;
+        line-height: 1.6;
+    }
+    
+    .demo-code {
+        background: #2c3e50;
+        color: #ecf0f1;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+    }
+    
+    .demo-code code {
+        font-family: monospace;
+    }
+    
+    .tag {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 1rem;
+        font-size: 0.8rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tag-primary {
+        background-color: #3498db;
+        color: white;
+    }
+    
+    .tag-success {
+        background-color: #2ecc71;
+        color: white;
+    }
+    
+    .tag-warning {
+        background-color: #f39c12;
+        color: white;
+    }
+    
+    .tag-info {
+        background-color: #1abc9c;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mt-4 mb-4">Galería de Imágenes Optimizadas</h1>
+            
+            <div class="alert alert-info">
+                <strong>¡Optimización avanzada!</strong> Las imágenes que ves a continuación están optimizadas automáticamente con diferentes tamaños y formatos modernos (WebP, AVIF). El navegador carga la imagen más eficiente según sus capacidades.
+            </div>
+            
+            <!-- Sección de Imagen Individual -->
+            <div class="demo-section">
+                <h2>Imagen Individual Responsiva</h2>
+                <p>
+                    <span class="tag tag-primary">Lazy Loading</span>
+                    <span class="tag tag-success">WebP/AVIF</span>
+                    <span class="tag tag-warning">Múltiples Resoluciones</span>
+                </p>
+                <p>
+                    Esta imagen se cargará con la versión más óptima según el navegador y el dispositivo.
+                    Incluye soporte para WebP y AVIF, con diferentes tamaños para distintos dispositivos.
+                </p>
+                <div class="demo-code">
+                    <code>{% verbatim %}{% responsive_image image alt_text="Descripción de la imagen" css_class="img-fluid" %}{% endverbatim %}</code>
+                </div>
+                
+                <div class="text-center">
+                    {% if imagen %}
+                        {% responsive_image imagen alt_text="Imagen de ejemplo optimizada" css_class="img-fluid rounded shadow" %}
+                    {% else %}
+                        <div class="alert alert-warning">No hay imágenes disponibles para mostrar.</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Galería de Imágenes -->
+            <div class="demo-section">
+                <h2>Galería de Imágenes</h2>
+                <p>
+                    <span class="tag tag-primary">Grid Responsivo</span>
+                    <span class="tag tag-success">Lazy Loading</span>
+                    <span class="tag tag-info">Efecto Hover</span>
+                </p>
+                <p>
+                    Una galería completa que muestra múltiples imágenes en un diseño de cuadrícula responsiva. 
+                    Las imágenes se cargan a medida que el usuario desplaza la página.
+                </p>
+                <div class="demo-code">
+                    <code>{% verbatim %}{% image_gallery images alt_prefix="Galería" css_class="gallery-img" cols=4 %}{% endverbatim %}</code>
+                </div>
+                
+                {% if imagenes %}
+                    {% image_gallery imagenes alt_prefix="Galería" css_class="gallery-img" cols=4 %}
+                {% else %}
+                    <div class="alert alert-warning">No hay imágenes disponibles para mostrar en la galería.</div>
+                {% endif %}
+            </div>
+            
+            <!-- Información Técnica -->
+            <div class="demo-section">
+                <h2>Información Técnica</h2>
+                <p>Esta página utiliza múltiples técnicas de optimización:</p>
+                
+                <ul>
+                    <li><strong>Formatos modernos:</strong> WebP y AVIF para una compresión más eficiente</li>
+                    <li><strong>Imágenes responsivas:</strong> Diferentes tamaños según el dispositivo (150px a 1440px)</li>
+                    <li><strong>Lazy loading:</strong> Las imágenes se cargan solo cuando son visibles</li>
+                    <li><strong>Picture tag:</strong> Selección automática del formato óptimo según el navegador</li>
+                    <li><strong>Srcset:</strong> Selección automática del tamaño óptimo según el dispositivo</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

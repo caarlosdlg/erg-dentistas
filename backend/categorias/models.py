@@ -105,6 +105,9 @@ class Category(MPTTModel):
             models.Index(fields=['is_active']),
             models.Index(fields=['parent']),
             models.Index(fields=['slug']),
+            models.Index(fields=['name'], name='category_name_idx'),
+            models.Index(fields=['description'], name='category_description_idx'),
+            models.Index(fields=['meta_title'], name='category_metatitle_idx'),
         ]
     
     def save(self, *args, **kwargs):
@@ -126,6 +129,11 @@ class Category(MPTTModel):
     def get_full_path(self):
         """Obtener la ruta completa de la categoría"""
         return " > ".join([ancestor.name for ancestor in self.get_ancestors(include_self=True)])
+    
+    @property
+    def full_path(self):
+        """Property para acceder a la ruta completa de la categoría"""
+        return self.get_full_path()
     
     def get_children_count(self):
         """Obtener el número de hijos directos"""

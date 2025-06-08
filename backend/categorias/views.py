@@ -6,6 +6,8 @@ from django.db.models import Q, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from mptt.templatetags.mptt_tags import cache_tree_children
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
 from .models import Category, CategoryAttribute
 from .serializers import (
@@ -16,6 +18,16 @@ from .serializers import (
     CategoryBreadcrumbSerializer,
     CategoryStatsSerializer
 )
+
+# Nueva vista para la interfaz de búsqueda
+def search_interface(request):
+    """
+    Vista para renderizar la interfaz de búsqueda del sistema.
+    
+    Esta página permite realizar búsquedas en categorías, tratamientos
+    y pacientes (si el usuario tiene permisos) desde una interfaz amigable.
+    """
+    return render(request, 'categorias/search.html')
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -306,3 +318,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
         
         serializer = CategoryListSerializer(queryset, many=True, context={'request': request})
         return Response(serializer.data)
+
+@login_required
+def search_page(request):
+    """
+    Vista para la página de búsqueda en el sistema.
+    
+    Muestra un formulario de búsqueda y permite buscar
+    categorías, tratamientos y pacientes desde la interfaz web.
+    """
+    return render(request, 'categorias/search.html')
