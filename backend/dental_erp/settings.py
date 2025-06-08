@@ -192,3 +192,34 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
+
+# Email Configuration
+# ===================
+
+# Email Backend Configuration
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+# SMTP Configuration (for production)
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Default From Email
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@dentalerp.com')
+SERVER_EMAIL = config('SERVER_EMAIL', default='server@dentalerp.com')
+
+# Email Templates Configuration
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=30, cast=int)
+EMAIL_SUBJECT_PREFIX = config('EMAIL_SUBJECT_PREFIX', default='[Dental ERP] ')
+
+# Email Feature Flags
+SEND_REVIEW_NOTIFICATIONS = config('SEND_REVIEW_NOTIFICATIONS', default=True, cast=bool)
+SEND_MODERATION_NOTIFICATIONS = config('SEND_MODERATION_NOTIFICATIONS', default=True, cast=bool)
+SEND_HELPFUL_NOTIFICATIONS = config('SEND_HELPFUL_NOTIFICATIONS', default=False, cast=bool)
+
+# Notification Email Settings
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='admin@dentalerp.com')
+NOTIFICATION_EMAIL_FROM = config('NOTIFICATION_EMAIL_FROM', default='notifications@dentalerp.com')
