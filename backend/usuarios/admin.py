@@ -19,8 +19,8 @@ class UserAdmin(BaseUserAdmin):
     inlines = (PerfilUsuarioInline,)
 
 # Re-register UserAdmin
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
+# admin.site.unregister(User)
+# admin.site.register(User, UserAdmin)
 
 @admin.register(PerfilUsuario)
 class PerfilUsuarioAdmin(admin.ModelAdmin):

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connectivity Test</title>
+</head>
+<body>
+    <h1>API Connectivity Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testApiConnectivity() {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                // Test categories API
+                const categoriesResponse = await fetch('http://localhost:8000/api/categories/public/tree/');
+                const categoriesData = await categoriesResponse.json();
+                
+                resultsDiv.innerHTML += `<h2>Categories API Test</h2>`;
+                resultsDiv.innerHTML += `<p>Status: ${categoriesResponse.status}</p>`;
+                resultsDiv.innerHTML += `<p>Categories count: ${categoriesData.count}</p>`;
+                
+                // Test reviews API
+                const reviewsResponse = await fetch('http://localhost:8000/api/reviews/');
+                const reviewsData = await reviewsResponse.json();
+                
+                resultsDiv.innerHTML += `<h2>Reviews API Test</h2>`;
+                resultsDiv.innerHTML += `<p>Status: ${reviewsResponse.status}</p>`;
+                resultsDiv.innerHTML += `<p>Reviews count: ${reviewsData.count}</p>`;
+                
+                if (reviewsData.results && reviewsData.results.length > 0) {
+                    resultsDiv.innerHTML += `<h3>Sample Review:</h3>`;
+                    resultsDiv.innerHTML += `<p>Title: ${reviewsData.results[0].title}</p>`;
+                    resultsDiv.innerHTML += `<p>Rating: ${reviewsData.results[0].rating}/5</p>`;
+                    resultsDiv.innerHTML += `<p>User: ${reviewsData.results[0].user.full_name}</p>`;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML += `<h2>Error</h2>`;
+                resultsDiv.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test when page loads
+        testApiConnectivity();
+    </script>
+</body>
+</html>

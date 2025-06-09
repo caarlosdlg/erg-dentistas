@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(Path(__file__).resolve().parent.parent / '.env')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,12 +46,15 @@ INSTALLED_APPS = [
     
     # Third party apps
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Necesario para el blacklist de tokens
     'corsheaders',
     'mptt',
     'django_filters',
     'compressor',  # Django Compressor para optimización de CSS/JS
     
     # Apps del ERP Dental
+    'authentication',  # Nueva app de autenticación
     'dentistas',
     'pacientes',
     'citas',
@@ -179,9 +186,18 @@ if DEBUG:
 
 # Configuración de CORS para desarrollo (se agregará cuando se instale django-cors-headers)
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React development server
+    "http://localhost:3000",  # React development server (default)
     "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite development server (current)
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",  # Vite development server (alternate)
+    "http://127.0.0.1:5174",
+    "http://localhost:5175",  # Vite development server (alternate)
+    "http://127.0.0.1:5175",
 ]
+
+# Permitir credenciales en solicitudes CORS
+CORS_ALLOW_CREDENTIALS = True
 
 # Configuración de archivos estáticos
 STATIC_URL = '/static/'
@@ -247,6 +263,7 @@ else:
 # Configuración de Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -260,6 +277,43 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
+
+# JWT Configuration
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JSON_ENCODER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'JTI_CLAIM': 'jti',
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(hours=1),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
+}
+
+# Google OAuth Configuration
+GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_OAUTH2_CLIENT_ID', default='')
+GOOGLE_OAUTH2_CLIENT_SECRET = config('GOOGLE_OAUTH2_CLIENT_SECRET', default='')
+
+# Custom User Model
+# AUTH_USER_MODEL = 'authentication.CustomUser'  # Comentado temporalmente
 
 # Email Configuration
 # ===================
