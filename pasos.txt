@@ -1,0 +1,13 @@
+Tarea 3: Desarrollo de Funcionalidad de Búsqueda Frontend
+Descripción: Implementar la interfaz de usuario para la funcionalidad de búsqueda, que interactúe con el backend.
+Requerimientos:
+Componente de input de búsqueda.
+Manejo del estado de la búsqueda y envío de la query al backend.
+Presentación de los resultados de búsqueda.
+Funcionamiento: Los usuarios deben poder escribir una consulta y ver los resultados relevantes en la interfaz.
+Tarea 4: Carga y Visualización de Imágenes Optimizadas
+Descripción: Desarrollar componentes para la carga y visualización de imágenes de productos de forma optimizada.
+Requerimientos:
+Componentes para mostrar imágenes de productos, utilizando URLs proporcionadas por el backend.
+Implementación de lazy loading para imágenes para mejorar el rendimiento.
+Funcionamiento: Las imágenes deben cargarse eficientemente y no ralentizar la página, especialmente en listas largas de productos.
