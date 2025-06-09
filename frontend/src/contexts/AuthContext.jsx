@@ -95,6 +95,63 @@ export const AuthProvider = ({ children }) => {
     return tokens.access;
   };
 
+  // Función de login para desarrollo (sin backend)
+  const loginDev = async (credentials = {}) => {
+    setIsLoading(true);
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const mockUser = {
+      id: 1,
+      email: credentials.email || 'dev@dentalerp.com',
+      first_name: credentials.first_name || 'Usuario',
+      last_name: credentials.last_name || 'Desarrollo',
+      is_staff: true,
+      is_superuser: true,
+      role: 'admin'
+    };
+
+    const mockTokens = {
+      access: 'dev-access-token-' + Date.now(),
+      refresh: 'dev-refresh-token-' + Date.now()
+    };
+
+    login(mockUser, mockTokens);
+    setIsLoading(false);
+    
+    return { user: mockUser, tokens: mockTokens };
+  };
+
+  // Login con Google para desarrollo
+  const loginWithGoogleDev = async () => {
+    setIsLoading(true);
+    
+    // Simular delay de Google OAuth
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const mockUser = {
+      id: 2,
+      email: 'carlos@dentalerp.com',
+      first_name: 'Carlos',
+      last_name: 'Delgado',
+      is_staff: true,
+      is_superuser: false,
+      role: 'dentist',
+      google_id: 'mock-google-id'
+    };
+
+    const mockTokens = {
+      access: 'google-dev-access-token-' + Date.now(),
+      refresh: 'google-dev-refresh-token-' + Date.now()
+    };
+
+    login(mockUser, mockTokens);
+    setIsLoading(false);
+    
+    return { user: mockUser, tokens: mockTokens };
+  };
+
   // Función de login
   const login = (userData, tokenData) => {
     setUser(userData);
@@ -125,6 +182,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     getValidToken,
     refreshToken,
+    loginDev,
+    loginWithGoogleDev,
   };
 
   return (
