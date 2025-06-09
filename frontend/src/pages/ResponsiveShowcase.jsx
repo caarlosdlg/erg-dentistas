@@ -1,18 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  ResponsiveContainer,
-  ResponsiveGrid,
-  ResponsiveFlex,
-  ResponsiveStack,
-  H1, H2, H3, Body, Lead,
-  ResponsiveNavbar,
-  NavLink,
-  NavButton,
-  Button,
-  Card,
-  Modal,
-  Badge
-} from '../components/ui';
+
 
 /**
  * Enhanced Responsive Design Showcase

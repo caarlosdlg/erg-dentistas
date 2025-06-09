@@ -1,16 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  ButtonTW as Button, 
-  CardTW as Card, 
-  Badge,
-  Modal,
-  Table,
-  Navbar,
-  Loading,
-  FormInput,
-  Select,
-  Textarea
-} from '../components/ui'
+
 
 /**
  * Responsive Design Demo Page

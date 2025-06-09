@@ -2,7 +2,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../contexts/AuthContext';
 
 const GoogleLoginButton = () => {
-  const { login } = useAuth();
+  const { login, loginWithGoogleDev } = useAuth();
 
   const handleSuccess = async (credentialResponse) => {
     try {
@@ -36,24 +36,8 @@ const GoogleLoginButton = () => {
   // Función para desarrollo - simula login con Google
   const handleDevelopmentLogin = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/auth/google/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          access_token: 'dev_test_token',
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          login(data.user, data.tokens);
-        }
-      } else {
-        console.error('Error en autenticación con Google');
-      }
+      // Use the context function instead of direct API call
+      await loginWithGoogleDev();
     } catch (error) {
       console.error('Error:', error);
     }

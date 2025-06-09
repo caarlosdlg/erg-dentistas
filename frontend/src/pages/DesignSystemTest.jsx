@@ -1,11 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  Button, 
-  Card, 
-  Badge, 
-  Input, 
-  Modal 
-} from '../components/ui'
+
 
 const DesignSystemTest = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
