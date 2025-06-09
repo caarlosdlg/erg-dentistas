@@ -21,7 +21,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('authentication.urls')),  # URLs de autenticación
+    path('api/auth/', include('authentication.urls')),  # URLs de autenticación
+    path('api/', include('pacientes.urls')),  # APIs de pacientes
+    path('api/', include('dentistas.urls')),  # APIs de dentistas
+    path('api/', include('citas.urls')),  # APIs de citas
+    path('api/', include('tratamientos.urls')),  # APIs de tratamientos
     path('', include('categorias.urls')),
     path('', include('reviews.urls')),
     path('', include('imagenes.urls')),

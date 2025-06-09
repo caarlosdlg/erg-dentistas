@@ -31,3 +31,7 @@ pillow-avif-plugin==1.4.1
 imagekitio==4.0.0
 opencv-python-headless==4.8.1.78  # Para recorte inteligente (opcional)
 face-recognition==1.3.0  # Para detección facial en imágenes (opcional)
+
+# Servidor de producción
+gunicorn==21.2.0
+redis==5.0.1
