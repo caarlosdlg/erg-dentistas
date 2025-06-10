@@ -152,6 +152,71 @@ export const AuthProvider = ({ children }) => {
     return { user: mockUser, tokens: mockTokens };
   };
 
+  // Login con GitHub para desarrollo
+  const loginWithGitHubDev = async () => {
+    setIsLoading(true);
+    
+    // Simular delay de GitHub OAuth
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const mockUser = {
+      id: 3,
+      email: 'dev@github.com',
+      first_name: 'GitHub',
+      last_name: 'Developer',
+      is_staff: true,
+      is_superuser: false,
+      role: 'developer',
+      github_id: 'mock-github-id',
+      github_profile: {
+        login: 'github-dev',
+        avatar_url: 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png',
+        html_url: 'https://github.com/github-dev'
+      }
+    };
+
+    const mockTokens = {
+      access: 'github-dev-access-token-' + Date.now(),
+      refresh: 'github-dev-refresh-token-' + Date.now()
+    };
+
+    login(mockUser, mockTokens);
+    setIsLoading(false);
+    
+    return { user: mockUser, tokens: mockTokens };
+  };
+
+  // Login con GitHub real
+  const loginWithGitHub = async (githubCode) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/github/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: githubCode,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        login(data.user, data.tokens);
+        return { user: data.user, tokens: data.tokens };
+      } else {
+        throw new Error(data.error || 'Error en autenticación con GitHub');
+      }
+    } catch (error) {
+      console.error('Error en login con GitHub:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Función de login
   const login = (userData, tokenData) => {
     setUser(userData);
@@ -184,6 +249,8 @@ export const AuthProvider = ({ children }) => {
     refreshToken,
     loginDev,
     loginWithGoogleDev,
+    loginWithGitHubDev,
+    loginWithGitHub,
   };
 
   return (

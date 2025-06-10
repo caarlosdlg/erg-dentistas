@@ -39,6 +39,12 @@ const UserProfile = () => {
             alt={`${user.first_name} ${user.last_name}`}
             className="w-8 h-8 rounded-full"
           />
+        ) : user.github_profile?.avatar_url ? (
+          <img
+            src={user.github_profile.avatar_url}
+            alt={`${user.first_name} ${user.last_name}`}
+            className="w-8 h-8 rounded-full"
+          />
         ) : (
           <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white text-sm font-medium">
             {user.first_name?.[0] || user.email?.[0] || 'U'}
