@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,6 +16,7 @@ class PacienteViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and additional functionality
     """
     queryset = Paciente.objects.all()
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     
     def get_serializer_class(self):
         if self.action == 'create':

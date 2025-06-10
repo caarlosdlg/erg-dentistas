@@ -28,7 +28,7 @@ class ProveedorSerializer(serializers.ModelSerializer):
         fields = ['id', 'nombre', 'contacto', 'telefono', 'email', 'direccion', 'activo', 'fecha_registro', 'total_articulos']
     
     def get_total_articulos(self, obj):
-        return obj.articulo_set.filter(activo=True).count()
+        return obj.articuloinventario_set.filter(activo=True).count()
 
 class ArticuloInventarioSerializer(serializers.ModelSerializer):
     categoria_nombre = serializers.CharField(source='categoria.nombre', read_only=True)

@@ -38,7 +38,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     para navegación y consulta del árbol de categorías.
     """
     queryset = Category.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['is_active', 'parent', 'level']
     search_fields = ['name', 'description', 'meta_title']

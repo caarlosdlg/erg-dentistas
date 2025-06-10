@@ -6,15 +6,16 @@ import React, { useState, useEffect } from 'react';
 const Tratamientos = () => {
   const [loading, setLoading] = useState(true);
   const [tratamientos, setTratamientos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
-    precio: '',
-    duracion: '',
-    categoria: 'general'
+    precio_base: '',
+    duracion_estimada: '',
+    categoria: ''
   });
 
   // Backend API base URL
@@ -22,7 +23,20 @@ const Tratamientos = () => {
 
   useEffect(() => {
     loadTratamientos();
+    loadCategorias();
   }, []);
+
+  const loadCategorias = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/categorias-tratamientos/`);
+      if (response.ok) {
+        const data = await response.json();
+        setCategorias(Array.isArray(data.results) ? data.results : []);
+      }
+    } catch (err) {
+      console.error('Error loading categories:', err);
+    }
+  };
 
   const loadTratamientos = async () => {
     try {
@@ -32,7 +46,7 @@ const Tratamientos = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setTratamientos(Array.isArray(data) ? data : []);
+        setTratamientos(Array.isArray(data.results) ? data.results : []);
       } else {
         throw new Error('Error al cargar tratamientos');
       }
@@ -54,9 +68,11 @@ const Tratamientos = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          precio: parseFloat(formData.precio) || 0,
-          duracion: parseInt(formData.duracion) || 0
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          precio_base: parseFloat(formData.precio_base) || 0,
+          duracion_estimada: parseInt(formData.duracion_estimada) || 0,
+          categoria: formData.categoria
         })
       });
 
@@ -65,9 +81,9 @@ const Tratamientos = () => {
         setFormData({
           nombre: '',
           descripcion: '',
-          precio: '',
-          duracion: '',
-          categoria: 'general'
+          precio_base: '',
+          duracion_estimada: '',
+          categoria: ''
         });
         loadTratamientos();
       } else {
@@ -79,32 +95,10 @@ const Tratamientos = () => {
     }
   };
 
-  const getCategoryColor = (categoria) => {
-    const colors = {
-      'general': 'bg-blue-100 text-blue-800',
-      'preventivo': 'bg-green-100 text-green-800',
-      'correctivo': 'bg-yellow-100 text-yellow-800',
-      'estetico': 'bg-purple-100 text-purple-800',
-      'cirugia': 'bg-red-100 text-red-800'
-    };
-    return colors[categoria] || 'bg-gray-100 text-gray-800';
-  };
-
-  const getCategoryText = (categoria) => {
-    const texts = {
-      'general': 'General',
-      'preventivo': 'Preventivo',
-      'correctivo': 'Correctivo',
-      'estetico': 'Estético',
-      'cirugia': 'Cirugía'
-    };
-    return texts[categoria] || categoria;
-  };
-
   const filteredTratamientos = tratamientos.filter(tratamiento =>
     tratamiento.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     tratamiento.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    tratamiento.categoria?.toLowerCase().includes(searchTerm.toLowerCase())
+    tratamiento.categoria?.nombre?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -194,8 +188,12 @@ const Tratamientos = () => {
                   <h3 className="text-lg font-semibold text-gray-900">
                     {tratamiento.nombre}
                   </h3>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(tratamiento.categoria)}`}>
-                    {getCategoryText(tratamiento.categoria)}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full`}
+                        style={{
+                          backgroundColor: tratamiento.categoria?.color + '20',
+                          color: tratamiento.categoria?.color || '#374151'
+                        }}>
+                    {tratamiento.categoria?.nombre || 'Sin categoría'}
                   </span>
                 </div>
                 
@@ -204,20 +202,20 @@ const Tratamientos = () => {
                 </p>
                 
                 <div className="space-y-2 text-sm">
-                  {tratamiento.precio && (
+                  {tratamiento.precio_base && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">Precio:</span>
                       <span className="font-medium text-green-600">
-                        ${tratamiento.precio.toLocaleString()}
+                        ${parseFloat(tratamiento.precio_base).toLocaleString()}
                       </span>
                     </div>
                   )}
                   
-                  {tratamiento.duracion && (
+                  {tratamiento.duracion_estimada && (
                     <div className="flex justify-between">
                       <span className="text-gray-500">Duración:</span>
                       <span className="font-medium">
-                        {tratamiento.duracion} min
+                        {tratamiento.duracion_estimada} min
                       </span>
                     </div>
                   )}
@@ -287,8 +285,8 @@ const Tratamientos = () => {
                   <input
                     type="number"
                     step="0.01"
-                    value={formData.precio}
-                    onChange={(e) => setFormData({...formData, precio: e.target.value})}
+                    value={formData.precio_base}
+                    onChange={(e) => setFormData({...formData, precio_base: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="0.00"
                   />
@@ -300,8 +298,8 @@ const Tratamientos = () => {
                   </label>
                   <input
                     type="number"
-                    value={formData.duracion}
-                    onChange={(e) => setFormData({...formData, duracion: e.target.value})}
+                    value={formData.duracion_estimada}
+                    onChange={(e) => setFormData({...formData, duracion_estimada: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="30"
                   />
@@ -310,18 +308,20 @@ const Tratamientos = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Categoría
+                  Categoría *
                 </label>
                 <select
+                  required
                   value={formData.categoria}
                   onChange={(e) => setFormData({...formData, categoria: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="general">General</option>
-                  <option value="preventivo">Preventivo</option>
-                  <option value="correctivo">Correctivo</option>
-                  <option value="estetico">Estético</option>
-                  <option value="cirugia">Cirugía</option>
+                  <option value="">Selecciona una categoría</option>
+                  {categorias.map((categoria) => (
+                    <option key={categoria.id} value={categoria.id}>
+                      {categoria.nombre}
+                    </option>
+                  ))}
                 </select>
               </div>
 

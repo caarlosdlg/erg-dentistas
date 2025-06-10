@@ -34,9 +34,9 @@ class ArticuloInventarioViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and additional functionality
     """
     queryset = ArticuloInventario.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['categoria', 'proveedor', 'activo', 'estado_stock']
+    filterset_fields = ['categoria', 'proveedor', 'activo']
     search_fields = ['codigo', 'nombre', 'descripcion', 'categoria__nombre', 'proveedor__nombre']
     ordering_fields = ['nombre', 'codigo', 'stock_actual', 'precio_venta', 'fecha_creacion']
     ordering = ['categoria__nombre', 'nombre']
@@ -164,7 +164,7 @@ class CategoriaInventarioViewSet(viewsets.ModelViewSet):
     """
     queryset = CategoriaInventario.objects.all()
     serializer_class = CategoriaInventarioSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['activo']
     search_fields = ['nombre', 'descripcion']
@@ -178,7 +178,7 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     """
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['activo']
     search_fields = ['nombre', 'contacto', 'email', 'telefono']
@@ -200,7 +200,7 @@ class MovimientoInventarioViewSet(viewsets.ModelViewSet):
     ViewSet for managing inventory movements
     """
     queryset = MovimientoInventario.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['tipo', 'articulo', 'registrado_por']
     search_fields = ['articulo__nombre', 'articulo__codigo', 'motivo']
@@ -244,7 +244,7 @@ class AlertaInventarioViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = AlertaInventario.objects.all()
     serializer_class = AlertaInventarioSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_fields = ['tipo', 'activa', 'articulo']
     ordering_fields = ['fecha_creacion']
