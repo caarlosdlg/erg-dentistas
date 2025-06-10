@@ -13,9 +13,15 @@ class APIService {
   // Helper method for making requests
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    
+    // Get auth token from localStorage
+    const tokens = localStorage.getItem('dental_erp_tokens');
+    const authToken = tokens ? JSON.parse(tokens).access : null;
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
+        ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
         ...options.headers,
       },
       ...options,
@@ -23,6 +29,44 @@ class APIService {
 
     try {
       const response = await fetch(url, config);
+      
+      // Handle 401 Unauthorized - try to refresh token or re-authenticate
+      if (response.status === 401) {
+        console.log('Token inválido o expirado, intentando re-autenticar...');
+        
+        // Try to get new token
+        try {
+          const authResponse = await fetch('http://localhost:8000/api/auth/google/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ access_token: 'dev_test_token' })
+          });
+
+          if (authResponse.ok) {
+            const authData = await authResponse.json();
+            localStorage.setItem('dental_erp_user', JSON.stringify(authData.user));
+            localStorage.setItem('dental_erp_tokens', JSON.stringify(authData.tokens));
+            
+            // Retry the original request with new token
+            const newConfig = {
+              ...config,
+              headers: {
+                ...config.headers,
+                'Authorization': `Bearer ${authData.tokens.access}`
+              }
+            };
+            
+            const retryResponse = await fetch(url, newConfig);
+            if (retryResponse.ok) {
+              return await retryResponse.json();
+            }
+          }
+        } catch (authError) {
+          console.error('Error re-autenticando:', authError);
+        }
+        
+        throw new Error('API Error: 401 Unauthorized');
+      }
       
       if (!response.ok) {
         throw new Error(`API Error: ${response.status} ${response.statusText}`);

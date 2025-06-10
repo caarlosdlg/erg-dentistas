@@ -8,7 +8,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { loginDev } = useAuth();
 
-  // Demo users for quick access
+  // Demo users for quick access (manteniendo la funcionalidad pero usando API real)
   const demoUsers = [
     {
       id: 'admin',
@@ -55,6 +55,7 @@ const LoginPage = () => {
   const handleDemoLogin = async (demoUser) => {
     setIsLoading(true);
     try {
+      // Usar la funcionalidad real de autenticación pero con datos demo
       await loginDev({
         email: demoUser.email,
         first_name: demoUser.first_name,

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba API - DentalERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .button { 
+            background: #3b82f6; 
+            color: white; 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 5px; 
+            margin: 10px; 
+            cursor: pointer; 
+        }
+        .button:hover { background: #2563eb; }
+        .result { 
+            background: #f3f4f6; 
+            padding: 20px; 
+            border-radius: 5px; 
+            margin: 20px 0; 
+            white-space: pre-wrap; 
+        }
+        .error { background: #fef2f2; color: #dc2626; }
+        .success { background: #f0fdf4; color: #16a34a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦷 Prueba de API - DentalERP</h1>
+        
+        <div>
+            <button class="button" onclick="testBackend()">Probar Backend</button>
+            <button class="button" onclick="loginDev()">Login Desarrollo</button>
+            <button class="button" onclick="getPacientes()">Obtener Pacientes</button>
+            <button class="button" onclick="clearStorage()">Limpiar Storage</button>
+        </div>
+        
+        <div id="result" class="result">
+            Haz clic en un botón para probar la API...
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        
+        function showResult(message, isError = false) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = isError ? 'result error' : 'result success';
+        }
+        
+        async function testBackend() {
+            try {
+                showResult('Probando conexión con backend...');
+                const response = await fetch(`${API_BASE}/api/`);
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult(`✅ Backend conectado!\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    showResult(`❌ Error de backend: ${response.status} ${response.statusText}`, true);
+                }
+            } catch (error) {
+                showResult(`❌ Error de conexión: ${error.message}`, true);
+            }
+        }
+        
+        async function loginDev() {
+            try {
+                showResult('Haciendo login en modo desarrollo...');
+                const response = await fetch(`${API_BASE}/api/auth/google/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        access_token: 'dev_test_token'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('dental_erp_user', JSON.stringify(data.user));
+                    localStorage.setItem('dental_erp_tokens', JSON.stringify(data.tokens));
+                    showResult(`✅ Login exitoso!\nUsuario: ${data.user.email}\nToken: ${data.tokens.access.substring(0, 20)}...`);
+                } else {
+                    const errorData = await response.text();
+                    showResult(`❌ Error de login: ${response.status}\n${errorData}`, true);
+                }
+            } catch (error) {
+                showResult(`❌ Error de login: ${error.message}`, true);
+            }
+        }
+        
+        async function getPacientes() {
+            try {
+                const tokens = localStorage.getItem('dental_erp_tokens');
+                if (!tokens) {
+                    showResult('❌ No hay token de autenticación. Haz login primero.', true);
+                    return;
+                }
+                
+                const tokenData = JSON.parse(tokens);
+                showResult('Obteniendo pacientes...');
+                
+                const response = await fetch(`${API_BASE}/api/pacientes/`, {
+                    headers: {
+                        'Authorization': `Bearer ${tokenData.access}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showResult(`✅ Pacientes obtenidos!\nTotal: ${data.count}\nPrimeros 3 pacientes:\n${JSON.stringify(data.results.slice(0, 3), null, 2)}`);
+                } else {
+                    const errorData = await response.text();
+                    showResult(`❌ Error obteniendo pacientes: ${response.status}\n${errorData}`, true);
+                }
+            } catch (error) {
+                showResult(`❌ Error: ${error.message}`, true);
+            }
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('dental_erp_user');
+            localStorage.removeItem('dental_erp_tokens');
+            showResult('🗑️ Storage limpiado. Tokens eliminados.');
+        }
+        
+        // Verificar estado inicial
+        window.onload = function() {
+            const user = localStorage.getItem('dental_erp_user');
+            const tokens = localStorage.getItem('dental_erp_tokens');
+            
+            if (user && tokens) {
+                const userData = JSON.parse(user);
+                showResult(`ℹ️ Sesión activa para: ${userData.email}`);
+            } else {
+                showResult('ℹ️ No hay sesión activa. Haz login para comenzar.');
+            }
+        };
+    </script>
+</body>
+</html>

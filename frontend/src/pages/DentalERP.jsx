@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Dashboard from './Dashboard';
-import Pacientes from './Pacientes';
+import PacientesReal from './PacientesReal';
 import Citas from './Citas';
 import Tratamientos from './Tratamientos';
 import Inventario from './Inventario';
@@ -61,7 +61,7 @@ const DentalERP = () => {
       case 'dashboard':
         return <Dashboard />;
       case 'pacientes':
-        return <Pacientes />;
+        return <PacientesReal />;
       case 'citas':
         return <Citas />;
       case 'tratamientos':
