@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import emailService from '../../services/emailService';
+import resendEmailService from '../../services/resendEmailService';
 
 const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEmail }) => {
   const [showEmailOptions, setShowEmailOptions] = useState(false);
@@ -71,15 +72,43 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
     }
 
     try {
+      let result;
       switch (tipo) {
-        case 'general':
-          await emailService.enviarEmailPersonalizado(paciente);
+        case 'bienvenida':
+          console.log('📧 Enviando email de bienvenida con Resend API...');
+          result = await resendEmailService.sendWelcomeEmail(paciente);
+          if (result.success) {
+            alert(`✅ Email de bienvenida enviado exitosamente a ${email}`);
+          } else {
+            throw new Error(result.error || 'Error desconocido');
+          }
           break;
         case 'recordatorio':
-          await emailService.enviarRecordatorioCita(paciente);
+          console.log('📧 Enviando email de recordatorio...');
+          result = await resendEmailService.sendAppointmentReminderEmail(paciente, null);
+          if (result.success) {
+            alert(`✅ Email de recordatorio enviado exitosamente a ${email}`);
+          } else {
+            throw new Error(result.error || 'Error desconocido');
+          }
           break;
-        case 'seguimiento':
-          await emailService.enviarSeguimientoMedico(paciente);
+        case 'general':
+          console.log('📧 Enviando email general...');
+          const subject = `Comunicación desde Clínica Dental - ${paciente.nombre_completo}`;
+          const message = `Estimado/a ${paciente.nombre_completo},
+
+Esperamos que se encuentre bien. Nos ponemos en contacto desde la clínica dental.
+
+Si tiene alguna pregunta o necesita programar una cita, no dude en contactarnos.
+
+Saludos cordiales,
+Equipo de la Clínica Dental`;
+          result = await resendEmailService.sendGeneralInfoEmail(paciente, subject, message);
+          if (result.success) {
+            alert(`✅ Email general enviado exitosamente a ${email}`);
+          } else {
+            throw new Error(result.error || 'Error desconocido');
+          }
           break;
         case 'manual':
           emailService.abrirEmailManual(email, nombre_completo);
@@ -88,7 +117,8 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
           await emailService.enviarEmailPersonalizado(paciente);
       }
     } catch (error) {
-      alert('Error al preparar el email: ' + error.message);
+      console.error('❌ Error al enviar email:', error);
+      alert('Error al enviar el email: ' + error.message);
     }
   };
 
@@ -217,6 +247,15 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
                 <div className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                   <div className="py-1">
                     <button
+                      onClick={() => handleEmailOption('bienvenida')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      📧 Email de Bienvenida
+                    </button>
+                    <button
                       onClick={() => handleEmailOption('general')}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     >
@@ -233,15 +272,6 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       Recordatorio de Cita
-                    </button>
-                    <button
-                      onClick={() => handleEmailOption('seguimiento')}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                    >
-                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Seguimiento Médico
                     </button>
                     <button
                       onClick={() => handleEmailOption('manual')}
