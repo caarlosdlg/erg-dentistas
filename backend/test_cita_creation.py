@@ -40,13 +40,16 @@ def test_create_cita_via_django():
         print(f"✅ Dentista: {dentista.nombre_completo}")
         print(f"✅ Tratamiento: {tratamiento.nombre if tratamiento else 'Sin tratamiento'}")
         
-        # Crear cita
+        # Crear cita con horario aleatorio para evitar conflictos
         from django.utils import timezone as tz
+        import random
         tomorrow = tz.now() + timedelta(days=1)
+        random_hour = random.randint(8, 18)  # Entre 8am y 6pm
+        random_minute = random.choice([0, 15, 30, 45])  # Intervalos de 15 min
         cita_data = {
             'paciente': paciente,
             'dentista': dentista,
-            'fecha_hora': tomorrow.replace(hour=10, minute=0, second=0, microsecond=0),
+            'fecha_hora': tomorrow.replace(hour=random_hour, minute=random_minute, second=0, microsecond=0),
             'duracion_estimada': 30,
             'tipo_cita': 'consulta',
             'estado': 'programada',
@@ -106,12 +109,17 @@ def test_create_cita_via_api():
         dentista = dentistas_data[0]
         print(f"✅ Dentista seleccionado: {dentista.get('nombre_completo', 'Sin nombre')}")
         
-        # Datos para crear cita
+        # Datos para crear cita con horario aleatorio
+        import random
         tomorrow = datetime.now() + timedelta(days=1)
+        random_hour = random.randint(8, 18)  # Entre 8am y 6pm
+        random_minute = random.choice([0, 15, 30, 45])  # Intervalos de 15 min
+        fecha_hora_str = tomorrow.replace(hour=random_hour, minute=random_minute, second=0, microsecond=0).strftime('%Y-%m-%dT%H:%M:%S')
+        
         cita_data = {
             'paciente': paciente['id'],
             'dentista': dentista['id'],
-            'fecha_hora': tomorrow.strftime('%Y-%m-%dT10:00:00'),
+            'fecha_hora': fecha_hora_str,
             'duracion_estimada': 30,
             'tipo_cita': 'consulta',
             'estado': 'programada',
