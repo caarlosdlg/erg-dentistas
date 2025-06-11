@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import GoogleLoginButton from '../components/auth/GoogleLoginButton';
 import GitHubLoginButton from '../components/auth/GitHubLoginButton';
 
 const LoginPage = () => {
@@ -109,11 +108,6 @@ const LoginPage = () => {
 
             {/* Authentication options */}
             <div className="space-y-6">
-              {/* Google OAuth */}
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                <GoogleLoginButton />
-              </div>
-
               {/* GitHub OAuth */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                 <GitHubLoginButton />

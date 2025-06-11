@@ -309,10 +309,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=7),
 }
 
-# Google OAuth Configuration
-GOOGLE_OAUTH2_CLIENT_ID = config('GOOGLE_OAUTH2_CLIENT_ID', default='')
-GOOGLE_OAUTH2_CLIENT_SECRET = config('GOOGLE_OAUTH2_CLIENT_SECRET', default='')
-
 # GitHub OAuth Configuration
 GITHUB_CLIENT_ID = config('GITHUB_CLIENT_ID', default='Ov23liJNJLbSggKfbHCe')
 GITHUB_CLIENT_SECRET = config('GITHUB_CLIENT_SECRET', default='4c2904eacd97b3499a645b1ed3a39b8d99f1d9a8')

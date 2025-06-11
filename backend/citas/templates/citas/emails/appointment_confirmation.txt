@@ -1,0 +1,28 @@
+¡CITA CONFIRMADA!
+
+Estimado/a {{ paciente.nombre }} {{ paciente.apellido_paterno }},
+
+Nos complace confirmar que su cita médica ha sido CONFIRMADA exitosamente.
+
+DETALLES DE SU CITA
+===================
+
+Número de Cita: {{ numero_cita }}
+Fecha y Hora: {{ fecha_hora|date:"l, d \d\e F \d\e Y" }} a las {{ fecha_hora|time:"H:i" }}
+Tipo de Cita: {{ tipo_cita }}
+{% if dentista %}Dentista: {{ dentista.nombre_completo }}{% endif %}
+{% if motivo_consulta %}Motivo de Consulta: {{ motivo_consulta }}{% endif %}
+Estado: CONFIRMADA
+
+INFORMACIÓN IMPORTANTE
+======================
+
+* Por favor, llegue 15 minutos antes de su cita para completar cualquier documentación necesaria.
+* Si necesita reprogramar o cancelar, por favor contáctenos con al menos 24 horas de anticipación.
+
+Esperamos verle pronto y brindarle la mejor atención dental.
+
+---
+Clínica Dental ERP
+Este es un mensaje automático, por favor no responda a este correo.
+Confirmación enviada el {{ fecha_confirmacion|date:"d/m/Y" }} a las {{ fecha_confirmacion|time:"H:i" }}

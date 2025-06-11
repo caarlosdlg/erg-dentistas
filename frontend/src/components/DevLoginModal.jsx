@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Lock, User, Mail, Chrome, Loader } from 'lucide-react';
+import { Lock, User, Mail, Loader } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const DevLoginModal = ({ isOpen, onClose }) => {
-  const { loginDev, loginWithGoogleDev, loginWithGitHubDev, isLoading } = useAuth();
+  const { loginDev, loginWithGitHubDev, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: 'dev@dentalerp.com',
     first_name: 'Usuario',
     last_name: 'Desarrollo'
   });
-  const [loginType, setLoginType] = useState('credentials'); // 'credentials', 'google', or 'github'
+  const [loginType, setLoginType] = useState('credentials'); // 'credentials' or 'github'
 
   console.log('🔍 DevLoginModal renderizando:', { isOpen, isLoading });
 
@@ -24,10 +24,7 @@ const DevLoginModal = ({ isOpen, onClose }) => {
     e.preventDefault();
     console.log('🔄 Iniciando login desde modal...', formData);
     try {
-      if (loginType === 'google') {
-        console.log('🔄 Login con Google...');
-        await loginWithGoogleDev();
-      } else if (loginType === 'github') {
+      if (loginType === 'github') {
         console.log('🔄 Login con GitHub...');
         await loginWithGitHubDev();
       } else {
@@ -38,18 +35,6 @@ const DevLoginModal = ({ isOpen, onClose }) => {
       onClose();
     } catch (error) {
       console.error('❌ Error en login de desarrollo:', error);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    console.log('🔄 Iniciando Google login...');
-    setLoginType('google');
-    try {
-      await loginWithGoogleDev();
-      console.log('✅ Google login exitoso, cerrando modal...');
-      onClose();
-    } catch (error) {
-      console.error('❌ Error en login con Google:', error);
     }
   };
 
@@ -172,25 +157,6 @@ const DevLoginModal = ({ isOpen, onClose }) => {
                 <span className="px-2 bg-white text-gray-500">o</span>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              className="w-full bg-white hover:bg-gray-50 disabled:bg-gray-100 text-gray-700 py-2 px-4 rounded-lg border border-gray-300 transition-colors flex items-center justify-center"
-            >
-              {isLoading && loginType === 'google' ? (
-                <>
-                  <Loader className="w-4 h-4 mr-2 animate-spin" />
-                  Conectando con Google...
-                </>
-              ) : (
-                <>
-                  <Chrome className="w-4 h-4 mr-2 text-blue-500" />
-                  Continuar con Google
-                </>
-              )}
-            </button>
 
             <button
               type="button"

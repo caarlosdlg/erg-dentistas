@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Authentication</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #ffebee; color: #c62828; }
+        .success { background: #e8f5e8; color: #2e7d32; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Test API Authentication - Dental ERP</h1>
+    
+    <button onclick="testAuth()">🔐 Test Authentication</button>
+    <button onclick="testPatients()">👥 Test Patients API</button>
+    <button onclick="testTreatments()">🦷 Test Treatments API</button>
+    <button onclick="testAppointments()">📅 Test Appointments API</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        async function logResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            resultsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        async function testAuth() {
+            try {
+                logResult('🔄 Testing authentication...', 'info');
+                
+                const response = await fetch(`${API_BASE}/auth/github/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: 'dev_test_code' })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('dental_erp_user', JSON.stringify(data.user));
+                    localStorage.setItem('dental_erp_tokens', JSON.stringify(data.tokens));
+                    logResult(`✅ Authentication successful! User: ${data.user.email}`, 'success');
+                    logResult(`🔑 Access token: ${data.tokens.access.substring(0, 20)}...`, 'success');
+                } else {
+                    logResult(`❌ Authentication failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                logResult(`❌ Authentication error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function makeAuthenticatedRequest(endpoint) {
+            const tokens = localStorage.getItem('dental_erp_tokens');
+            const authToken = tokens ? JSON.parse(tokens).access : null;
+            
+            if (!authToken) {
+                throw new Error('No auth token found. Please authenticate first.');
+            }
+            
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            return await response.json();
+        }
+        
+        async function testPatients() {
+            try {
+                logResult('🔄 Testing patients API...', 'info');
+                const data = await makeAuthenticatedRequest('/pacientes/');
+                const patients = data.results || data;
+                logResult(`✅ Patients loaded: ${patients.length} patients found`, 'success');
+                
+                if (patients.length > 0) {
+                    const sample = patients[0];
+                    logResult(`📝 Sample patient: ${sample.nombre} ${sample.apellido_paterno} - ${sample.email}`, 'info');
+                }
+            } catch (error) {
+                logResult(`❌ Patients API error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testTreatments() {
+            try {
+                logResult('🔄 Testing treatments API...', 'info');
+                const data = await makeAuthenticatedRequest('/tratamientos/');
+                const treatments = data.results || data;
+                logResult(`✅ Treatments loaded: ${treatments.length} treatments found`, 'success');
+                
+                if (treatments.length > 0) {
+                    const sample = treatments[0];
+                    logResult(`📝 Sample treatment: ${sample.nombre} - $${sample.precio_base}`, 'info');
+                }
+            } catch (error) {
+                logResult(`❌ Treatments API error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAppointments() {
+            try {
+                logResult('🔄 Testing appointments API...', 'info');
+                const data = await makeAuthenticatedRequest('/citas/');
+                const appointments = data.results || data;
+                logResult(`✅ Appointments loaded: ${appointments.length} appointments found`, 'success');
+                
+                if (appointments.length > 0) {
+                    const sample = appointments[0];
+                    logResult(`📝 Sample appointment: ${sample.numero_cita} - ${sample.estado}`, 'info');
+                }
+            } catch (error) {
+                logResult(`❌ Appointments API error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Auto-authenticate on page load for testing
+        window.onload = function() {
+            logResult('🚀 Page loaded. Click "Test Authentication" to start.', 'info');
+        };
+    </script>
+</body>
+</html>

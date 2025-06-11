@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Pacientes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .log { padding: 10px; margin: 5px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Debug - Carga de Pacientes</h1>
+    <button onclick="testPatients()">🔍 Probar Carga de Pacientes</button>
+    <div id="logs"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            logsDiv.appendChild(div);
+        }
+
+        async function testPatients() {
+            try {
+                log('🔄 Iniciando autenticación...', 'info');
+                
+                // Autenticar primero
+                const authResponse = await fetch('http://localhost:8000/api/auth/github/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: 'dev_test_code' })
+                });
+
+                if (!authResponse.ok) {
+                    throw new Error(`Auth failed: ${authResponse.status}`);
+                }
+
+                const authData = await authResponse.json();
+                log(`✅ Autenticado como: ${authData.user.email}`, 'success');
+
+                // Cargar pacientes
+                log('🔄 Cargando pacientes...', 'info');
+                const patientsResponse = await fetch('http://localhost:8000/api/pacientes/', {
+                    headers: {
+                        'Authorization': `Bearer ${authData.tokens.access}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!patientsResponse.ok) {
+                    throw new Error(`Patients API failed: ${patientsResponse.status}`);
+                }
+
+                const patientsData = await patientsResponse.json();
+                const patients = patientsData.results || patientsData;
+                
+                log(`✅ ${patients.length} pacientes cargados:`, 'success');
+                
+                patients.forEach((patient, index) => {
+                    log(`${index + 1}. ${patient.nombre} ${patient.apellido_paterno} - ${patient.email} - ${patient.telefono}`, 'info');
+                });
+
+                // Verificar el formato para el dropdown
+                log('📋 Formato para dropdown:', 'info');
+                patients.forEach((patient, index) => {
+                    const displayText = `${patient.nombre} ${patient.apellido_paterno} - ${patient.email} - ${patient.telefono}`;
+                    log(`Opción ${index + 1}: ${displayText}`, 'info');
+                });
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

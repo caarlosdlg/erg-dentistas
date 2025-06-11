@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Cita</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2c5282;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c5282;
+            margin: 0;
+            font-size: 28px;
+        }
+        .confirmation-badge {
+            background-color: #48bb78;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .appointment-details {
+            background-color: #edf2f7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2c5282;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #2d3748;
+        }
+        .detail-value {
+            color: #4a5568;
+        }
+        .important-note {
+            background-color: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #718096;
+            font-size: 14px;
+        }
+        .contact-info {
+            background-color: #e6fffa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #38b2ac;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .detail-row {
+                flex-direction: column;
+            }
+            .detail-label, .detail-value {
+                margin: 2px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Cita Confirmada!</h1>
+            <div class="confirmation-badge">
+                ✓ CONFIRMADA
+            </div>
+        </div>
+
+        <p>Estimado/a <strong>{{ paciente.nombre }} {{ paciente.apellido_paterno }}</strong>,</p>
+        
+        <p>Nos complace confirmar que su cita médica ha sido <strong>confirmada exitosamente</strong>.</p>
+
+        <div class="appointment-details">
+            <h3 style="margin-top: 0; color: #2c5282;">Detalles de su Cita</h3>
+            
+            <div class="detail-row">
+                <span class="detail-label">Número de Cita:</span>
+                <span class="detail-value">{{ numero_cita }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Fecha y Hora:</span>
+                <span class="detail-value">{{ fecha_hora|date:"l, d \d\e F \d\e Y" }} a las {{ fecha_hora|time:"H:i" }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="detail-label">Tipo de Cita:</span>
+                <span class="detail-value">{{ tipo_cita }}</span>
+            </div>
+            
+            {% if dentista %}
+            <div class="detail-row">
+                <span class="detail-label">Dentista:</span>
+                <span class="detail-value">{{ dentista.nombre_completo }}</span>
+            </div>
+            {% endif %}
+            
+            {% if motivo_consulta %}
+            <div class="detail-row">
+                <span class="detail-label">Motivo de Consulta:</span>
+                <span class="detail-value">{{ motivo_consulta }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="detail-row">
+                <span class="detail-label">Estado:</span>
+                <span class="detail-value" style="color: #48bb78; font-weight: bold;">CONFIRMADA</span>
+            </div>
+        </div>
+
+        <div class="important-note">
+            <strong>Importante:</strong> Por favor, llegue 15 minutos antes de su cita para completar cualquier documentación necesaria.
+        </div>
+
+        <div class="contact-info">
+            <strong>¿Necesita reprogramar o cancelar?</strong><br>
+            Si necesita realizar cambios en su cita, por favor contáctenos con al menos 24 horas de anticipación.
+        </div>
+
+        <p>Esperamos verle pronto y brindarle la mejor atención dental.</p>
+
+        <div class="footer">
+            <p><strong>Clínica Dental ERP</strong></p>
+            <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+            <p>Confirmación enviada el {{ fecha_confirmacion|date:"d/m/Y" }} a las {{ fecha_confirmacion|time:"H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html>

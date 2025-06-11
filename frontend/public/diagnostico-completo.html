@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico del Sistema - DentalERP</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico del Sistema DentalERP</h1>
+        <p>Esta página diagnostica el estado del sistema completo.</p>
+        
+        <div id="results"></div>
+        
+        <button onclick="runDiagnostics()">🔄 Ejecutar Diagnósticos</button>
+        <button onclick="testFrontendConnection()">📱 Probar Frontend</button>
+        <button onclick="testBackendConnection()">🖥️ Probar Backend</button>
+        <button onclick="testApiAuth()">🔐 Probar Autenticación</button>
+        <button onclick="testPatients()">👥 Probar Pacientes</button>
+        <button onclick="openMainApp()">🚀 Ir a la App Principal</button>
+        
+        <div id="logs" class="log" style="display: none;">
+            <h3>📋 Logs del Sistema:</h3>
+            <div id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        const FRONTEND_BASE = 'http://localhost:5173';
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('log-content');
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logDiv.appendChild(logEntry);
+            console.log(`${type.toUpperCase()}: ${message}`);
+            
+            // Mostrar logs
+            document.getElementById('logs').style.display = 'block';
+        }
+        
+        function showResult(test, status, message) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${status}`;
+            resultDiv.innerHTML = `<strong>${test}:</strong> ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+        
+        async function testFrontendConnection() {
+            log('Probando conexión al frontend...');
+            try {
+                // Verificar si el frontend está respondiendo
+                const response = await fetch(FRONTEND_BASE);
+                if (response.ok) {
+                    showResult('Frontend', 'success', `✅ Servidor frontend disponible en ${FRONTEND_BASE}`);
+                    log('Frontend: Conectado correctamente');
+                } else {
+                    showResult('Frontend', 'error', `❌ Frontend responde pero con error: ${response.status}`);
+                    log(`Frontend: Error ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showResult('Frontend', 'error', `❌ No se puede conectar al frontend: ${error.message}`);
+                log(`Frontend: Error de conexión - ${error.message}`, 'error');
+            }
+        }
+        
+        async function testBackendConnection() {
+            log('Probando conexión al backend...');
+            try {
+                const response = await fetch(`${API_BASE}/`);
+                if (response.ok || response.status === 404) {
+                    showResult('Backend', 'success', `✅ Servidor backend disponible en ${API_BASE}`);
+                    log('Backend: Conectado correctamente');
+                } else {
+                    showResult('Backend', 'warning', `⚠️ Backend responde con status: ${response.status}`);
+                    log(`Backend: Status ${response.status}`, 'warning');
+                }
+            } catch (error) {
+                showResult('Backend', 'error', `❌ No se puede conectar al backend: ${error.message}`);
+                log(`Backend: Error de conexión - ${error.message}`, 'error');
+            }
+        }
+        
+        async function testApiAuth() {
+            log('Probando autenticación API...');
+            try {
+                const response = await fetch(`${API_BASE}/auth/token/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'dev_test_token',
+                        password: 'dev_test_token'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access_token', data.access);
+                    localStorage.setItem('refresh_token', data.refresh);
+                    showResult('Autenticación', 'success', '✅ Token de autenticación obtenido correctamente');
+                    log('Autenticación: Token obtenido y guardado');
+                } else {
+                    const errorData = await response.text();
+                    showResult('Autenticación', 'error', `❌ Error de autenticación: ${response.status}`);
+                    log(`Autenticación: Error ${response.status} - ${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult('Autenticación', 'error', `❌ Error en autenticación: ${error.message}`);
+                log(`Autenticación: Error - ${error.message}`, 'error');
+            }
+        }
+        
+        async function testPatients() {
+            log('Probando API de pacientes...');
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    showResult('Pacientes', 'warning', '⚠️ No hay token de autenticación. Ejecute primero el test de autenticación.');
+                    log('Pacientes: Sin token de autenticación', 'warning');
+                    return;
+                }
+                
+                const response = await fetch(`${API_BASE}/pacientes/`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const patients = data.results || data;
+                    showResult('Pacientes', 'success', `✅ ${patients.length} pacientes cargados desde la base de datos`);
+                    log(`Pacientes: ${patients.length} pacientes encontrados`);
+                    
+                    // Mostrar algunos pacientes como ejemplo
+                    if (patients.length > 0) {
+                        const patientsList = patients.slice(0, 3).map(p => 
+                            `• ${p.nombre_completo} (${p.email})`
+                        ).join('<br>');
+                        showResult('Pacientes (Ejemplo)', 'success', patientsList);
+                    }
+                } else {
+                    const errorData = await response.text();
+                    showResult('Pacientes', 'error', `❌ Error al cargar pacientes: ${response.status}`);
+                    log(`Pacientes: Error ${response.status} - ${errorData}`, 'error');
+                }
+            } catch (error) {
+                showResult('Pacientes', 'error', `❌ Error al cargar pacientes: ${error.message}`);
+                log(`Pacientes: Error - ${error.message}`, 'error');
+            }
+        }
+        
+        async function runDiagnostics() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('log-content').innerHTML = '';
+            
+            log('Iniciando diagnósticos completos del sistema...');
+            
+            await testFrontendConnection();
+            await testBackendConnection();
+            await testApiAuth();
+            await testPatients();
+            
+            log('Diagnósticos completados');
+        }
+        
+        function openMainApp() {
+            log('Abriendo aplicación principal...');
+            window.open(FRONTEND_BASE, '_blank');
+        }
+        
+        // Ejecutar diagnósticos automáticamente al cargar la página
+        window.onload = function() {
+            log('Página de diagnóstico cargada');
+            runDiagnostics();
+        };
+    </script>
+</body>
+</html>

@@ -34,12 +34,12 @@ class APIService {
       if (response.status === 401) {
         console.log('Token inválido o expirado, intentando re-autenticar...');
         
-        // Try to get new token
+        // Try to get new token using GitHub auth
         try {
-          const authResponse = await fetch('http://localhost:8000/api/auth/google/', {
+          const authResponse = await fetch('http://localhost:8000/api/auth/github/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: 'dev_test_token' })
+            body: JSON.stringify({ code: 'dev_test_code' })
           });
 
           if (authResponse.ok) {

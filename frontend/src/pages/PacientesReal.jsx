@@ -45,10 +45,10 @@ const PacientesReal = () => {
       if (!tokens) {
         console.log('No hay tokens, haciendo login automático...');
         // Hacer login automático en desarrollo
-        const response = await fetch('http://localhost:8000/api/auth/google/', {
+        const response = await fetch('http://localhost:8000/api/auth/github/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access_token: 'dev_test_token' })
+          body: JSON.stringify({ code: 'dev_test_code' })
         });
 
         if (response.ok) {

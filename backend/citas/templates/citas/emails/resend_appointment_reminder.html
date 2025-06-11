@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recordatorio de Cita - {{ numero_cita }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #1a202c;
+            background-color: #f7fafc;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="5" cy="5" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .reminder-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 16px;
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            color: #2d3748;
+            margin-bottom: 24px;
+        }
+        
+        .appointment-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .appointment-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, #f093fb, #f5576c);
+        }
+        
+        .appointment-card h3 {
+            color: #c53030;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-left: 15px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            gap: 16px;
+            padding-left: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .detail-icon {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        .detail-content {
+            flex: 1;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        
+        .detail-value {
+            color: #2d3748;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .urgent-reminder {
+            background: #fef5e7;
+            border: 2px solid #f6ad55;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .urgent-reminder h4 {
+            color: #c05621;
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        
+        .urgent-reminder p {
+            color: #c05621;
+            font-weight: 500;
+        }
+        
+        .checklist {
+            background: #e6fffa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            border-left: 4px solid #38b2ac;
+        }
+        
+        .checklist h4 {
+            color: #234e52;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checklist ul {
+            color: #285e61;
+            margin-left: 20px;
+        }
+        
+        .checklist li {
+            margin-bottom: 12px;
+            position: relative;
+        }
+        
+        .checklist li::before {
+            content: '✓';
+            position: absolute;
+            left: -20px;
+            color: #38b2ac;
+            font-weight: bold;
+        }
+        
+        .contact-section {
+            background: #fef5e7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            border-left: 4px solid #f6ad55;
+        }
+        
+        .contact-section h4 {
+            color: #c05621;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .contact-section p {
+            color: #c05621;
+            margin-bottom: 8px;
+        }
+        
+        .footer {
+            background: #f7fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer h4 {
+            color: #2c5282;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .footer p {
+            color: #718096;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        
+        .powered-by {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .appointment-card {
+                padding: 20px;
+            }
+            
+            .detail-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🔔 Recordatorio de Cita</h1>
+            <div class="reminder-badge">
+                ⏰ PRÓXIMA CITA
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                <strong>Estimado/a {{ paciente.nombre }} {{ paciente.apellido_paterno }},</strong>
+            </div>
+            
+            <p style="color: #4a5568; margin-bottom: 30px;">
+                Le recordamos que tiene una <strong style="color: #c53030;">cita médica programada próximamente</strong>. 
+                Por favor, revise los detalles a continuación.
+            </p>
+
+            <div class="urgent-reminder">
+                <h4>🚨 ¡Su cita es muy pronto!</h4>
+                <p>No olvide confirmar su asistencia y llegar puntualmente.</p>
+            </div>
+
+            <div class="appointment-card">
+                <h3>📅 Detalles de su Cita</h3>
+                
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <svg class="detail-icon" fill="#f5576c" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2v1a1 1 0 102 0V3h4v1a1 1 0 102 0V3a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 102 0v2a1 1 0 11-2 0V9z"/>
+                        </svg>
+                        <div class="detail-content">
+                            <div class="detail-label">Número de Cita</div>
+                            <div class="detail-value">{{ numero_cita }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <svg class="detail-icon" fill="#f5576c" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
+                        </svg>
+                        <div class="detail-content">
+                            <div class="detail-label">Fecha y Hora</div>
+                            <div class="detail-value">{{ fecha_hora|date:"l, d \d\e F \d\e Y" }} a las {{ fecha_hora|time:"H:i" }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <svg class="detail-icon" fill="#f5576c" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+                        </svg>
+                        <div class="detail-content">
+                            <div class="detail-label">Tipo de Cita</div>
+                            <div class="detail-value">{{ tipo_cita }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if dentista %}
+                    <div class="detail-row">
+                        <svg class="detail-icon" fill="#f5576c" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/>
+                        </svg>
+                        <div class="detail-content">
+                            <div class="detail-label">Dentista</div>
+                            <div class="detail-value">Dr./Dra. {{ dentista.user.first_name }} {{ dentista.user.last_name }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if motivo_consulta %}
+                    <div class="detail-row">
+                        <svg class="detail-icon" fill="#f5576c" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"/>
+                        </svg>
+                        <div class="detail-content">
+                            <div class="detail-label">Motivo de Consulta</div>
+                            <div class="detail-value">{{ motivo_consulta }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="checklist">
+                <h4>
+                    📋 Lista de Verificación Pre-Cita
+                </h4>
+                <ul>
+                    <li>Llegue <strong>15 minutos antes</strong> de su cita</li>
+                    <li>Traiga su <strong>documento de identidad</strong></li>
+                    <li>Lista actualizada de <strong>medicamentos</strong> que toma</li>
+                    <li>Información sobre <strong>alergias</strong> conocidas</li>
+                    <li>Use <strong>ropa cómoda</strong> y evite comidas pesadas antes</li>
+                    <li>Traiga su <strong>seguro médico</strong> o tarjeta de seguro</li>
+                </ul>
+            </div>
+
+            <div class="contact-section">
+                <h4>📞 ¿Necesita reprogramar?</h4>
+                <p><strong>Si no puede asistir:</strong></p>
+                <p>• Contáctenos <strong>INMEDIATAMENTE</strong></p>
+                <p>• Teléfono: {{ clinica_telefono|default:"+52 55 1234 5678" }}</p>
+                <p>• Cancelaciones con menos de 24h pueden aplicar cargos</p>
+            </div>
+
+            <p style="color: #4a5568; text-align: center; margin-top: 30px;">
+                ¡Esperamos verle pronto para brindarle la mejor atención dental! 🦷✨
+            </p>
+        </div>
+
+        <div class="footer">
+            <h4>{{ clinica_nombre|default:"Clínica Dental ERP" }}</h4>
+            <p>{{ clinica_direccion|default:"Av. Reforma 123, Ciudad de México" }}</p>
+            <p>Teléfono: {{ clinica_telefono|default:"+52 55 1234 5678" }}</p>
+            <p>Este es un recordatorio automático.</p>
+            
+            <div class="powered-by">
+                Email enviado con ❤️ usando Resend
+            </div>
+        </div>
+    </div>
+</body>
+</html>

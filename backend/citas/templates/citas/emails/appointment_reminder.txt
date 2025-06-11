@@ -1,0 +1,28 @@
+RECORDATORIO DE CITA
+
+Estimado/a {{ paciente.nombre }} {{ paciente.apellido_paterno }},
+
+Le recordamos que tiene una cita médica programada próximamente.
+
+DETALLES DE SU CITA
+===================
+
+Número de Cita: {{ numero_cita }}
+Fecha y Hora: {{ fecha_hora|date:"l, d \d\e F \d\e Y" }} a las {{ fecha_hora|time:"H:i" }}
+Tipo de Cita: {{ tipo_cita }}
+{% if dentista %}Dentista: {{ dentista.nombre_completo }}{% endif %}
+{% if motivo_consulta %}Motivo de Consulta: {{ motivo_consulta }}{% endif %}
+
+RECORDATORIOS IMPORTANTES
+========================
+
+* Llegue 15 minutos antes de su cita
+* Traiga su documento de identidad
+* Si toma medicamentos, traiga la lista actualizada
+* Si necesita reprogramar o cancelar, contáctenos con al menos 24 horas de anticipación
+
+Esperamos verle pronto y brindarle la mejor atención dental.
+
+---
+Clínica Dental ERP
+Este es un mensaje automático, por favor no responda a este correo.

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico Sistema</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .ok { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Diagnóstico del Sistema DentalERP</h1>
+    
+    <div id="results"></div>
+
+    <script>
+        async function checkSystem() {
+            const results = document.getElementById('results');
+            
+            function addResult(message, type = 'info') {
+                const div = document.createElement('div');
+                div.className = `status ${type}`;
+                div.innerHTML = message;
+                results.appendChild(div);
+            }
+            
+            // 1. Verificar si el frontend carga
+            addResult('✅ Frontend cargando correctamente en puerto 5174', 'ok');
+            
+            // 2. Verificar backend
+            try {
+                const backendTest = await fetch('http://localhost:8000/api/auth/google/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ access_token: 'dev_test_token' })
+                });
+                
+                if (backendTest.ok) {
+                    addResult('✅ Backend Django funcionando en puerto 8000', 'ok');
+                    
+                    const authData = await backendTest.json();
+                    addResult(`✅ Autenticación funcionando - Usuario: ${authData.user.email}`, 'ok');
+                    
+                    // 3. Verificar API de pacientes
+                    const patientsTest = await fetch('http://localhost:8000/api/pacientes/', {
+                        headers: { 'Authorization': `Bearer ${authData.tokens.access}` }
+                    });
+                    
+                    if (patientsTest.ok) {
+                        const patientsData = await patientsTest.json();
+                        const patients = patientsData.results || patientsData;
+                        addResult(`✅ API de pacientes funcionando - ${patients.length} pacientes encontrados`, 'ok');
+                        
+                        if (patients.length > 0) {
+                            addResult(`📋 Primeros pacientes: ${patients.slice(0, 3).map(p => p.email).join(', ')}`, 'info');
+                        }
+                    } else {
+                        addResult('❌ Error en API de pacientes', 'error');
+                    }
+                } else {
+                    addResult('❌ Backend no responde correctamente', 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Error conectando con backend: ${error.message}`, 'error');
+            }
+            
+            // 4. Verificar aplicación React
+            setTimeout(() => {
+                const reactApp = document.querySelector('[data-reactroot]') || 
+                                document.getElementById('root') ||
+                                document.querySelector('.min-h-screen');
+                
+                if (reactApp) {
+                    addResult('✅ Aplicación React cargada', 'ok');
+                } else {
+                    addResult('❌ Aplicación React no encontrada', 'error');
+                }
+            }, 2000);
+        }
+        
+        checkSystem();
+    </script>
+</body>
+</html>

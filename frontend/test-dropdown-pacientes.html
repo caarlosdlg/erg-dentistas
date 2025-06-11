@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Dropdown Pacientes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        select { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+        .result { background: #f0f8ff; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #ffe6e6; color: #d00; }
+        .success { background: #e6ffe6; color: #080; }
+        .info { background: #fff2e6; color: #b8860b; }
+        button { padding: 10px 20px; margin: 5px; background: #007cba; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005c8a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦷 Test Dropdown Pacientes - Sistema Dental</h1>
+        
+        <button onclick="loadPatients()">🔄 Cargar Pacientes</button>
+        <button onclick="clearResults()">🗑️ Limpiar</button>
+        
+        <div id="status" class="result info">
+            <strong>Estado:</strong> Presiona "Cargar Pacientes" para comenzar
+        </div>
+        
+        <label for="patientsSelect"><strong>Seleccionar Paciente:</strong></label>
+        <select id="patientsSelect" onchange="onPatientSelect(this.value)">
+            <option value="">-- Seleccionar paciente --</option>
+        </select>
+        
+        <div id="patientInfo" class="result" style="display: none;">
+            <h3>📋 Información del Paciente Seleccionado:</h3>
+            <div id="patientDetails"></div>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let patients = [];
+        
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `result ${type}`;
+            statusDiv.innerHTML = `<strong>Estado:</strong> ${message}`;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            resultsDiv.appendChild(div);
+            console.log(message);
+        }
+        
+        async function authenticate() {
+            try {
+                updateStatus('🔐 Autenticando...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/auth/github/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: 'dev_test_code' })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Authentication failed: ${response.status}`);
+                }
+                
+                const authData = await response.json();
+                localStorage.setItem('dental_erp_user', JSON.stringify(authData.user));
+                localStorage.setItem('dental_erp_tokens', JSON.stringify(authData.tokens));
+                
+                addResult(`✅ Autenticación exitosa para: ${authData.user.email}`, 'success');
+                return authData.tokens.access;
+                
+            } catch (error) {
+                addResult(`❌ Error de autenticación: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async function fetchPatients(token) {
+            try {
+                updateStatus('👥 Cargando pacientes...', 'info');
+                
+                const response = await fetch('http://localhost:8000/api/pacientes/', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Patients API failed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                const patientsList = data.results || data;
+                
+                addResult(`✅ ${patientsList.length} pacientes cargados exitosamente`, 'success');
+                return patientsList;
+                
+            } catch (error) {
+                addResult(`❌ Error cargando pacientes: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        function populateDropdown(patientsList) {
+            const select = document.getElementById('patientsSelect');
+            
+            // Limpiar opciones existentes excepto la primera
+            select.innerHTML = '<option value="">-- Seleccionar paciente --</option>';
+            
+            patientsList.forEach(patient => {
+                const option = document.createElement('option');
+                option.value = patient.id;
+                
+                const displayName = patient.nombre_completo || `${patient.nombre} ${patient.apellido_paterno}`;
+                option.textContent = `${displayName} - ${patient.email} - ${patient.telefono}`;
+                
+                select.appendChild(option);
+            });
+            
+            addResult(`📋 Dropdown poblado con ${patientsList.length} pacientes`, 'success');
+            updateStatus(`✅ Sistema listo - ${patientsList.length} pacientes disponibles`, 'success');
+        }
+        
+        function onPatientSelect(patientId) {
+            if (!patientId) {
+                document.getElementById('patientInfo').style.display = 'none';
+                return;
+            }
+            
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+            
+            const displayName = patient.nombre_completo || `${patient.nombre} ${patient.apellido_paterno}`;
+            
+            document.getElementById('patientDetails').innerHTML = `
+                <p><strong>ID:</strong> ${patient.id}</p>
+                <p><strong>Nombre completo:</strong> ${displayName}</p>
+                <p><strong>Email:</strong> ${patient.email}</p>
+                <p><strong>Teléfono:</strong> ${patient.telefono}</p>
+                <p><strong>Número de expediente:</strong> ${patient.numero_expediente}</p>
+                <p><strong>Fecha de registro:</strong> ${new Date(patient.fecha_registro).toLocaleDateString()}</p>
+                <p><strong>Estado:</strong> ${patient.activo ? '✅ Activo' : '❌ Inactivo'}</p>
+            `;
+            
+            document.getElementById('patientInfo').style.display = 'block';
+            addResult(`👤 Paciente seleccionado: ${displayName}`, 'info');
+        }
+        
+        async function loadPatients() {
+            try {
+                clearResults();
+                
+                // Paso 1: Autenticar
+                const token = await authenticate();
+                
+                // Paso 2: Cargar pacientes
+                patients = await fetchPatients(token);
+                
+                // Paso 3: Poblar dropdown
+                populateDropdown(patients);
+                
+            } catch (error) {
+                updateStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('patientInfo').style.display = 'none';
+            document.getElementById('patientsSelect').innerHTML = '<option value="">-- Seleccionar paciente --</option>';
+        }
+        
+        // Auto-load en startup
+        window.onload = function() {
+            updateStatus('🚀 Sistema iniciado - Presiona "Cargar Pacientes"', 'info');
+        };
+    </script>
+</body>
+</html>

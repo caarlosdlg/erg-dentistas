@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Selector de Pacientes - Sin Autenticación</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        select, button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #patientsDropdown {
+            width: 100%;
+            max-width: 400px;
+        }
+        .patient-info {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test - Selector de Pacientes Sin Autenticación</h1>
+        <p>Esta página prueba que el endpoint <code>/api/pacientes/dropdown/</code> funciona correctamente sin requerir autenticación.</p>
+        
+        <div id="status" class="status info">
+            ⏳ Cargando datos...
+        </div>
+        
+        <div>
+            <h3>📋 Selector de Pacientes</h3>
+            <select id="patientsDropdown" disabled>
+                <option value="">Cargando pacientes...</option>
+            </select>
+            
+            <div id="selectedPatientInfo" style="display: none;" class="patient-info">
+                <h4>👤 Paciente Seleccionado:</h4>
+                <div id="patientDetails"></div>
+            </div>
+        </div>
+        
+        <div>
+            <h3>🔄 Acciones</h3>
+            <button onclick="loadPatients()" id="reloadBtn">Recargar Pacientes</button>
+            <button onclick="testCreateAppointment()" id="testCreateBtn" disabled>Test Crear Cita</button>
+        </div>
+        
+        <div>
+            <h3>📊 Información del Sistema</h3>
+            <div id="systemInfo">
+                <p><strong>Backend URL:</strong> http://localhost:8000/api</p>
+                <p><strong>Endpoint:</strong> /pacientes/dropdown/</p>
+                <p><strong>Autenticación:</strong> ❌ No requerida</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let patients = [];
+        let selectedPatient = null;
+
+        // Función para cargar pacientes
+        async function loadPatients() {
+            const statusDiv = document.getElementById('status');
+            const dropdown = document.getElementById('patientsDropdown');
+            const reloadBtn = document.getElementById('reloadBtn');
+            
+            statusDiv.className = 'status info';
+            statusDiv.innerHTML = '⏳ Cargando pacientes...';
+            reloadBtn.disabled = true;
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/pacientes/dropdown/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                patients = data.results || data || [];
+                
+                // Actualizar dropdown
+                dropdown.innerHTML = '<option value="">Seleccionar paciente...</option>';
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.id;
+                    option.textContent = `${patient.nombre_completo} - ${patient.email}`;
+                    dropdown.appendChild(option);
+                });
+                
+                dropdown.disabled = false;
+                document.getElementById('testCreateBtn').disabled = false;
+                
+                statusDiv.className = 'status success';
+                statusDiv.innerHTML = `✅ ${patients.length} pacientes cargados exitosamente sin autenticación`;
+                
+            } catch (error) {
+                console.error('Error cargando pacientes:', error);
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+                
+                dropdown.innerHTML = '<option value="">Error al cargar pacientes</option>';
+                dropdown.disabled = true;
+            } finally {
+                reloadBtn.disabled = false;
+            }
+        }
+        
+        // Función para manejar selección de paciente
+        function handlePatientSelect() {
+            const dropdown = document.getElementById('patientsDropdown');
+            const selectedPatientInfo = document.getElementById('selectedPatientInfo');
+            const patientDetails = document.getElementById('patientDetails');
+            
+            const patientId = dropdown.value;
+            
+            if (patientId) {
+                selectedPatient = patients.find(p => p.id === patientId);
+                
+                if (selectedPatient) {
+                    patientDetails.innerHTML = `
+                        <p><strong>Nombre:</strong> ${selectedPatient.nombre_completo}</p>
+                        <p><strong>Email:</strong> ${selectedPatient.email}</p>
+                        <p><strong>Teléfono:</strong> ${selectedPatient.telefono || 'No especificado'}</p>
+                        <p><strong>ID:</strong> ${selectedPatient.id}</p>
+                    `;
+                    selectedPatientInfo.style.display = 'block';
+                }
+            } else {
+                selectedPatient = null;
+                selectedPatientInfo.style.display = 'none';
+            }
+        }
+        
+        // Función para probar creación de cita
+        async function testCreateAppointment() {
+            if (!selectedPatient) {
+                alert('⚠️ Por favor selecciona un paciente primero');
+                return;
+            }
+            
+            const confirmed = confirm(
+                `🩺 Test Crear Cita\n\n` +
+                `Paciente: ${selectedPatient.nombre_completo}\n` +
+                `Email: ${selectedPatient.email}\n\n` +
+                `¿Continuar con el test?`
+            );
+            
+            if (confirmed) {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status info';
+                statusDiv.innerHTML = '⏳ Probando creación de cita...';
+                
+                try {
+                    const citaData = {
+                        paciente: selectedPatient.id,
+                        dentista: 1, // ID de dentista de prueba
+                        tratamiento: 1, // ID de tratamiento de prueba
+                        fecha_hora: '2025-06-15T10:00:00',
+                        motivo_consulta: 'Test de funcionalidad sin autenticación',
+                        tipo_cita: 'consulta',
+                        estado: 'programada'
+                    };
+                    
+                    const response = await fetch('http://localhost:8000/api/citas/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(citaData)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        statusDiv.className = 'status success';
+                        statusDiv.innerHTML = `✅ Cita creada exitosamente (ID: ${result.id || 'N/A'})`;
+                    } else {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error creando cita:', error);
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `❌ Error creando cita: ${error.message}`;
+                }
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('patientsDropdown').addEventListener('change', handlePatientSelect);
+        
+        // Cargar pacientes al inicio
+        window.onload = loadPatients;
+    </script>
+</body>
+</html>

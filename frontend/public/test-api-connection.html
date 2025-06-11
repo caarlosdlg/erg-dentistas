@@ -71,13 +71,13 @@
         async function loginDev() {
             try {
                 showResult('Haciendo login en modo desarrollo...');
-                const response = await fetch(`${API_BASE}/api/auth/google/`, {
+                const response = await fetch(`${API_BASE}/api/auth/github/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        access_token: 'dev_test_token'
+                        code: 'dev_test_code'
                     })
                 });
                 

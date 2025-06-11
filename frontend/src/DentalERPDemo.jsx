@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import DentalERP from './pages/DentalERP';
@@ -13,12 +12,10 @@ import ResponsiveShowcase from './pages/ResponsiveShowcase';
 
 /**
  * Main Demo Application with Authentication
- * Complete DentalERP demo with Google OAuth and development mode
+ * Complete DentalERP demo with GitHub OAuth and development mode
  */
 function DentalERPDemo() {
   const [demoMode, setDemoMode] = useState('erp'); // erp, showcase, components
-
-  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'demo-client-id';
 
   // Navigation header for switching between demo modes
   const DemoNavigation = () => (
@@ -152,14 +149,12 @@ function DentalERPDemo() {
   };
 
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
-          <DemoNavigation />
-          {renderDemoContent()}
-        </div>
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    <AuthProvider>
+      <div className="min-h-screen bg-gray-50">
+        <DemoNavigation />
+        {renderDemoContent()}
+      </div>
+    </AuthProvider>
   );
 }
 

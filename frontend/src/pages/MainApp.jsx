@@ -23,12 +23,12 @@ const MainApp = () => {
       if (!tokens) {
         // Hacer login automático en desarrollo
         try {
-          const response = await fetch(`${API_BASE}/auth/google/`, {
+          const response = await fetch(`${API_BASE}/auth/github/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ access_token: 'dev_test_token' })
+            body: JSON.stringify({ code: 'dev_test_code' })
           });
 
           if (response.ok) {
