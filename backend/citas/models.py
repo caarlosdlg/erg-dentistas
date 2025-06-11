@@ -76,8 +76,14 @@ class Cita(models.Model):
     
     def clean(self):
         # Validar que la cita no sea en el pasado (excepto para estados específicos)
-        if self.fecha_hora and self.fecha_hora < timezone.now() and self.estado == 'programada':
-            raise ValidationError("No se puede programar una cita en el pasado")
+        if self.fecha_hora and self.estado == 'programada':
+            # Asegurar que ambas fechas tengan timezone para la comparación
+            fecha_cita = self.fecha_hora
+            if timezone.is_naive(fecha_cita):
+                fecha_cita = timezone.make_aware(fecha_cita)
+            
+            if fecha_cita < timezone.now():
+                raise ValidationError("No se puede programar una cita en el pasado")
         
         # Validar conflictos de horario del dentista
         if self.dentista and self.fecha_hora:

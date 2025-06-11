@@ -54,6 +54,21 @@ export const apiSimple = {
     return await simpleRequest('/dentistas/');
   },
 
+  // Crear nuevo paciente
+  async createPatient(patientData) {
+    console.log('👤 Creando nuevo paciente...', patientData);
+    return await simpleRequest('/pacientes/', {
+      method: 'POST',
+      body: JSON.stringify(patientData),
+    });
+  },
+
+  // Obtener lista completa de pacientes
+  async getPatients() {
+    console.log('👥 Obteniendo lista de pacientes...');
+    return await simpleRequest('/pacientes/');
+  },
+
   // Crear cita
   async createAppointment(citaData) {
     console.log('📅 Creando cita...', citaData);
@@ -158,6 +173,44 @@ export const apiSimple = {
   async getCitas() {
     console.log('📋 Obteniendo lista de citas...');
     return await simpleRequest('/citas/');
+  },
+
+  // Obtener lista completa de pacientes
+  async getPatients() {
+    console.log('👥 Obteniendo lista completa de pacientes...');
+    return await simpleRequest('/pacientes/');
+  },
+
+  // Crear nuevo paciente
+  async createPatient(patientData) {
+    console.log('👤 Creando nuevo paciente...', patientData);
+    return await simpleRequest('/pacientes/', {
+      method: 'POST',
+      body: JSON.stringify(patientData),
+    });
+  },
+
+  // Actualizar paciente existente
+  async updatePatient(patientId, patientData) {
+    console.log('✏️ Actualizando paciente...', patientId, patientData);
+    return await simpleRequest(`/pacientes/${patientId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(patientData),
+    });
+  },
+
+  // Eliminar paciente
+  async deletePatient(patientId) {
+    console.log('🗑️ Eliminando paciente...', patientId);
+    return await simpleRequest(`/pacientes/${patientId}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Obtener paciente específico
+  async getPatient(patientId) {
+    console.log('🔍 Obteniendo paciente específico...', patientId);
+    return await simpleRequest(`/pacientes/${patientId}/`);
   },
 
   // Test de conectividad

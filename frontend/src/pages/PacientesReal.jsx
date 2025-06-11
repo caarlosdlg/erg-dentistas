@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import apiService from '../services/api';
+import { apiSimple } from '../services/apiSimple';
 
 /**
- * Pacientes Component - Real API connection
- * Connects to actual backend API for patient management
+ * Pacientes Component - Real API connection (Sin autenticación)
+ * Connects to actual backend API for patient management without GitHub auth
  */
 const PacientesReal = () => {
   const [loading, setLoading] = useState(true);
@@ -39,49 +39,8 @@ const PacientesReal = () => {
       setLoading(true);
       setError(null);
       
-      // Verificar que tenemos tokens de autenticación
-      let tokens = localStorage.getItem('dental_erp_tokens');
-      
-      if (!tokens) {
-        console.log('No hay tokens, haciendo login automático...');
-        // Hacer login automático en desarrollo
-        const response = await fetch('http://localhost:8000/api/auth/github/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: 'dev_test_code' })
-        });
-
-        if (response.ok) {
-          const authData = await response.json();
-          localStorage.setItem('dental_erp_user', JSON.stringify(authData.user));
-          localStorage.setItem('dental_erp_tokens', JSON.stringify(authData.tokens));
-          console.log('Login automático exitoso:', authData.user.email);
-        } else {
-          throw new Error('Error en login automático');
-        }
-      }
-
-      // Verificar que el token no esté expirado
-      const tokenData = JSON.parse(localStorage.getItem('dental_erp_tokens'));
-      if (tokenData && tokenData.access) {
-        // Decodificar el JWT para verificar expiración (simple check)
-        try {
-          const payload = JSON.parse(atob(tokenData.access.split('.')[1]));
-          const now = Date.now() / 1000;
-          
-          if (payload.exp < now) {
-            console.log('Token expirado, renovando...');
-            localStorage.removeItem('dental_erp_tokens');
-            localStorage.removeItem('dental_erp_user');
-            return loadPatients(); // Recursivo para renovar token
-          }
-        } catch (e) {
-          console.warn('Error verificando token:', e);
-        }
-      }
-
-      console.log('Cargando pacientes con token válido...');
-      const data = await apiService.getPatients();
+      console.log('Cargando pacientes sin autenticación...');
+      const data = await apiSimple.getPatients();
       console.log('Pacientes cargados:', data);
       setPatients(data.results || data);
     } catch (err) {
@@ -96,7 +55,7 @@ const PacientesReal = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await apiService.createPatient(formData);
+      await apiSimple.createPatient(formData);
       setShowCreateModal(false);
       setFormData({
         nombre: '',
