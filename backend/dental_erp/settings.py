@@ -31,7 +31,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-#)*@iop%!&-rz+858!0%n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver', 'dental_erp-web-1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'testserver', 'dental_erp-web-1', 'cxrlos.fun', 'www.cxrlos.fun']
 
 
 # Application definition
@@ -196,6 +196,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5174",
     "http://localhost:5175",  # Vite development server (alternate)
     "http://127.0.0.1:5175",
+    "http://cxrlos.fun:5173",  # Production domain
+    "https://cxrlos.fun:5173", # Production domain HTTPS
 ]
 
 # Permitir credenciales en solicitudes CORS

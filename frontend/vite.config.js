@@ -5,6 +5,14 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
+    port: 5173,
     allowedHosts: ['cxrlos.fun'],
+    proxy: {
+      '/api': {
+        target: 'http://cxrlos.fun:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
 })

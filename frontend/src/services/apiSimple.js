@@ -3,7 +3,7 @@
  * Maneja comunicación directa con el backend
  */
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 // Función helper para requests simples
 async function simpleRequest(endpoint, options = {}) {

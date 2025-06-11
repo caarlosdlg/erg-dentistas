@@ -3,7 +3,7 @@
  * Handles all API communication with the backend
  */
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = '/api';
 
 class APIService {
   constructor() {
@@ -36,7 +36,7 @@ class APIService {
         
         // Try to get new token using GitHub auth
         try {
-          const authResponse = await fetch('http://localhost:8000/api/auth/github/', {
+          const authResponse = await fetch('/api/auth/github/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: 'dev_test_code' })
