@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TarjetaPaciente = ({ paciente, onVerExpediente }) => {
+const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente }) => {
   const {
     id,
     nombre_completo,
@@ -30,6 +30,17 @@ const TarjetaPaciente = ({ paciente, onVerExpediente }) => {
 
   const edad = calculateAge(fecha_nacimiento);
   const tieneAlertas = alergias || enfermedades_cronicas;
+
+  const handleDelete = async () => {
+    if (window.confirm(`¿Estás seguro de que deseas eliminar al paciente ${nombre_completo}? Esta acción no se puede deshacer.`)) {
+      try {
+        await onDeletePaciente(id);
+      } catch (error) {
+        alert('Error al eliminar el paciente. Por favor intenta de nuevo.');
+        console.error('Error deleting patient:', error);
+      }
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200">
@@ -135,8 +146,11 @@ const TarjetaPaciente = ({ paciente, onVerExpediente }) => {
           >
             Ver Expediente
           </button>
-          <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors text-sm font-medium">
-            Editar
+          <button 
+            onClick={handleDelete}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+          >
+            Borrar
           </button>
         </div>
       </div>

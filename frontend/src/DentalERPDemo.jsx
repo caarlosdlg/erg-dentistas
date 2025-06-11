@@ -26,44 +26,10 @@ function DentalERPDemo() {
             <h1 className="text-xl font-bold text-gray-900">DentalERP Demo</h1>
           </div>
           
-          <div className="hidden md:flex space-x-1">
-            <button
-              onClick={() => setDemoMode('erp')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                demoMode === 'erp'
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              🏥 Sistema ERP
-            </button>
-            <button
-              onClick={() => setDemoMode('showcase')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                demoMode === 'showcase'
-                  ? 'bg-green-600 text-white'
-                  : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
-              }`}
-            >
-              🎨 Showcase
-            </button>
-            <button
-              onClick={() => setDemoMode('components')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                demoMode === 'components'
-                  ? 'bg-purple-600 text-white'
-                  : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
-              }`}
-            >
-              🧩 Componentes
-            </button>
-          </div>
+      
         </div>
 
-        <div className="flex items-center space-x-2 text-sm text-gray-500">
-          <span className="hidden sm:inline">Demo Version 1.0</span>
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        </div>
+       
       </div>
 
       {/* Mobile Navigation */}

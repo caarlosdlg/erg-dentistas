@@ -149,6 +149,34 @@ export const usePacientes = () => {
     }
   };
 
+  const deletePaciente = async (id) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/pacientes/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      // Remover el paciente de la lista local
+      setPacientes(prev => prev.filter(p => p.id !== id));
+      return true;
+    } catch (err) {
+      setError(err.message);
+      console.error('Error deleting paciente:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getPacienteById = async (id) => {
     return await getPaciente(id);
   };
@@ -167,6 +195,7 @@ export const usePacientes = () => {
     createPaciente,
     updatePaciente,
     toggleActivePaciente,
+    deletePaciente,
     refetch: fetchPacientes
   };
 };

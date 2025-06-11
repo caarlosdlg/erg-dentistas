@@ -6,7 +6,7 @@ import FiltrosPacientes from '../../components/pacientes/FiltrosPacientes';
 
 const Pacientes = () => {
   const navigate = useNavigate();
-  const { pacientes, loading, error, fetchPacientes } = usePacientes();
+  const { pacientes, loading, error, fetchPacientes, deletePaciente } = usePacientes();
   const [searchTerm, setSearchTerm] = useState('');
   const [filtros, setFiltros] = useState({
     activo: null,
@@ -96,6 +96,17 @@ const Pacientes = () => {
 
   const handleVerExpediente = (pacienteId) => {
     navigate(`/pacientes/${pacienteId}/expediente`);
+  };
+
+  const handleDeletePaciente = async (pacienteId) => {
+    try {
+      await deletePaciente(pacienteId);
+      // Recargar la lista para actualizar las estadísticas
+      fetchPacientes(filtros);
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      // El error ya se maneja en el componente TarjetaPaciente
+    }
   };
 
   const handleNuevoPaciente = () => {
@@ -280,6 +291,7 @@ const Pacientes = () => {
                 key={paciente.id}
                 paciente={paciente}
                 onVerExpediente={handleVerExpediente}
+                onDeletePaciente={handleDeletePaciente}
               />
             ))}
           </div>
