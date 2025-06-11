@@ -215,7 +215,7 @@ class TratamientoViewSet(viewsets.ModelViewSet):
             context={'request': request}
         )
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get treatment statistics"""

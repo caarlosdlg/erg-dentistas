@@ -1,49 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import Dashboard from './Dashboard';
-import PacientesReal from './PacientesReal';
-import Citas from './Citas';
-import CitasConSeleccionPacientes from './CitasConSeleccionPacientes';
-import CitasConEmailsCompleto from './CitasConEmailsCompleto';
-import CitasElegante from './CitasElegante';
-import Tratamientos from './Tratamientos';
-import Inventario from './Inventario';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 /**
- * DentalERP Main Application - Simplified Version
+ * DentalERP Main Application - Layout with React Router
  * Basic dental clinic management system with Tailwind CSS
  */
 const DentalERP = () => {
-  const [currentModule, setCurrentModule] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [user, setUser] = useState(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   
-  // Simple user data simulation
-  useEffect(() => {
-    setUser({
-      first_name: 'Dr. Juan',
-      last_name: 'Pérez',
-      role: 'admin'
-    });
-  }, []);
+  // Get current module from location
+  const getCurrentModule = () => {
+    const path = location.pathname.split('/')[1];
+    return path || 'dashboard';
+  };
+
+  const currentModule = getCurrentModule();
 
   const navigationItems = [
     {
       id: 'dashboard',
       label: 'Dashboard',
       icon: '🏠',
-      description: 'Resumen general del sistema'
+      description: 'Resumen general del sistema',
+      path: '/dashboard'
     },
     {
       id: 'pacientes',
       label: 'Pacientes',
       icon: '👥',
-      description: 'Gestión de pacientes'
+      description: 'Gestión de pacientes',
+      path: '/pacientes'
     },
     {
       id: 'citas',
       label: 'Citas',
       icon: '📅',
-      description: 'Gestión de citas'
+      description: 'Gestión de citas',
+      path: '/citas'
     },
     {
       id: 'citas-rapidas',
@@ -67,38 +64,17 @@ const DentalERP = () => {
       id: 'tratamientos',
       label: 'Tratamientos',
       icon: '🦷',
-      description: 'Catálogo de tratamientos'
+      description: 'Catálogo de tratamientos',
+      path: '/tratamientos'
     },
     {
       id: 'inventario',
       label: 'Inventario',
       icon: '📦',
-      description: 'Gestión de suministros'
+      description: 'Gestión de suministros',
+      path: '/inventario'
     }
   ];
-
-  const renderCurrentModule = () => {
-    switch (currentModule) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'pacientes':
-        return <PacientesReal />;
-      case 'citas':
-        return <Citas />;
-      case 'citas-rapidas':
-        return <CitasConSeleccionPacientes />;
-      case 'citas-emails':
-        return <CitasConEmailsCompleto />;
-      case 'citas-elegante':
-        return <CitasElegante />;
-      case 'tratamientos':
-        return <Tratamientos />;
-      case 'inventario':
-        return <Inventario />;
-      default:
-        return <Dashboard />;
-    }
-  };
 
   const getCurrentModuleInfo = () => {
     return navigationItems.find(item => item.id === currentModule) || navigationItems[0];
@@ -141,7 +117,7 @@ const DentalERP = () => {
             {navigationItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => setCurrentModule(item.id)}
+                onClick={() => navigate(item.path)}
                 className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
                   currentModule === item.id
                     ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500'
@@ -209,12 +185,11 @@ const DentalERP = () => {
                 })}
               </div>
               
-              <button className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                Notificaciones (3)
-              </button>
-              
-              <button className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                Configuración
+              <button
+                onClick={logout}
+                className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cerrar Sesión
               </button>
             </div>
           </div>
@@ -222,7 +197,7 @@ const DentalERP = () => {
 
         {/* Module Content */}
         <main className="flex-1 p-6 overflow-auto">
-          {renderCurrentModule()}
+          <Outlet />
         </main>
 
         {/* Footer */}

@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen } from 'lucide-react';
 import { clsx } from 'clsx';
 
 /**
  * CategoryTree Component
- * Displays hierarchical category structure as a navigable tree
+ * Displays hierarchical category structure as a navigable tree for treatments
  */
 const CategoryTree = ({ 
   categories = [], 
@@ -12,11 +12,36 @@ const CategoryTree = ({
   selectedCategoryId = null,
   searchTerm = '',
   className = '',
-  maxDepth = null,
+  maxDepth = 4,
   showItemCount = true,
-  compact = false
+  compact = false,
+  showTreatmentCount = true
 }) => {
   const [expandedNodes, setExpandedNodes] = useState(new Set());
+
+  // Auto-expand path to selected category
+  useEffect(() => {
+    if (selectedCategoryId && categories.length > 0) {
+      const findCategoryPath = (cats, targetId, path = []) => {
+        for (const cat of cats) {
+          const currentPath = [...path, cat.id];
+          if (cat.id === targetId) {
+            return currentPath;
+          }
+          if (cat.children && cat.children.length > 0) {
+            const found = findCategoryPath(cat.children, targetId, currentPath);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const path = findCategoryPath(categories, selectedCategoryId);
+      if (path) {
+        setExpandedNodes(new Set(path.slice(0, -1)));
+      }
+    }
+  }, [selectedCategoryId, categories]);
 
   const toggleNode = (categoryId) => {
     const newExpanded = new Set(expandedNodes);
@@ -26,6 +51,24 @@ const CategoryTree = ({
       newExpanded.add(categoryId);
     }
     setExpandedNodes(newExpanded);
+  };
+
+  const expandAll = () => {
+    const getAllIds = (cats) => {
+      let ids = [];
+      cats.forEach(cat => {
+        ids.push(cat.id);
+        if (cat.children && cat.children.length > 0) {
+          ids = ids.concat(getAllIds(cat.children));
+        }
+      });
+      return ids;
+    };
+    setExpandedNodes(new Set(getAllIds(categories)));
+  };
+
+  const collapseAll = () => {
+    setExpandedNodes(new Set());
   };
 
   const isNodeExpanded = (categoryId) => expandedNodes.has(categoryId);
@@ -45,8 +88,8 @@ const CategoryTree = ({
     if (!searchTerm) return categories;
     
     return categories.filter(category => {
-      const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           category.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (category.nombre || category.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (category.descripcion || category.description || '').toLowerCase().includes(searchTerm.toLowerCase());
       
       const hasMatchingChildren = category.children?.some(child => 
         filterCategories([child], searchTerm, currentDepth + 1).length > 0
@@ -59,98 +102,119 @@ const CategoryTree = ({
     }));
   };
 
-  const renderCategory = (category, depth = 0) => {
-    // Check max depth
-    if (maxDepth !== null && depth >= maxDepth) {
-      return null;
-    }
-
+  const renderTreeNode = (category, depth = 0) => {
+    if (maxDepth !== null && depth > maxDepth) return null;
+    
     const hasChildren = category.children && category.children.length > 0;
     const isExpanded = isNodeExpanded(category.id);
-    const isSelected = category.id === selectedCategoryId;
+    const isSelected = selectedCategoryId === category.id;
     
-    const indentClass = compact ? 
-      `ml-${Math.min(depth * 3, 12)}` : 
-      `ml-${Math.min(depth * 4, 16)}`;
-
+    const nodeClass = clsx(
+      'flex items-center py-3 px-3 rounded-lg cursor-pointer transition-all duration-200',
+      'hover:bg-gray-50',
+      {
+        'bg-primary-50 border-l-4 border-primary-500': isSelected,
+        'text-primary-700': isSelected,
+        'text-gray-900': !isSelected,
+        'text-sm': !compact,
+        'text-xs': compact,
+        'py-2': compact
+      }
+    );
+    
+    const indent = depth * (compact ? 16 : 20);
+    
     return (
       <div key={category.id} className="category-node">
         <div
-          className={clsx(
-            'flex items-center py-2 px-3 cursor-pointer transition-colors duration-200 rounded-md',
-            indentClass,
-            {
-              'bg-primary-50 text-primary-700 border border-primary-200': isSelected,
-              'hover:bg-neutral-50': !isSelected,
-              'text-sm': compact,
-              'text-base': !compact
-            }
-          )}
+          className={nodeClass}
+          style={{ paddingLeft: `${12 + indent}px` }}
           onClick={() => handleCategoryClick(category)}
         >
-          {/* Expand/Collapse Icon */}
-          <div className="w-5 h-5 mr-2 flex items-center justify-center">
-            {hasChildren ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleNode(category.id);
-                }}
-                className="p-0.5 rounded hover:bg-neutral-200 transition-colors"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-neutral-600" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-neutral-600" />
-                )}
-              </button>
-            ) : (
-              <div className="w-4 h-4" />
+          {/* Toggle Button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasChildren) toggleNode(category.id);
+            }}
+            className={clsx(
+              'mr-2 p-1 rounded-lg transition-colors duration-200',
+              {
+                'hover:bg-gray-200': hasChildren,
+                'invisible': !hasChildren
+              }
             )}
-          </div>
+            disabled={!hasChildren}
+          >
+            {hasChildren && (
+              isExpanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-600" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              )
+            )}
+          </button>
 
-          {/* Category Icon */}
-          <div className="w-5 h-5 mr-3 flex items-center justify-center">
+          {/* Folder Icon */}
+          <div className="mr-3">
             {hasChildren ? (
               isExpanded ? (
-                <FolderOpen className="w-4 h-4 text-primary-500" />
+                <FolderOpen 
+                  className="w-5 h-5" 
+                  style={{ color: category.color || '#6B7280' }}
+                />
               ) : (
-                <Folder className="w-4 h-4 text-neutral-500" />
+                <Folder 
+                  className="w-5 h-5" 
+                  style={{ color: category.color || '#6B7280' }}
+                />
               )
             ) : (
-              <div className="w-2 h-2 bg-neutral-300 rounded-full" />
+              <div 
+                className="w-5 h-5 rounded border-2"
+                style={{ 
+                  borderColor: category.color || '#6B7280',
+                  backgroundColor: `${category.color || '#6B7280'}20`
+                }}
+              />
             )}
           </div>
 
+          {/* Category Icon (emoji) */}
+          {category.icono && (
+            <span className="mr-2 text-lg">{category.icono}</span>
+          )}
+
           {/* Category Name */}
-          <span className={clsx(
-            'flex-1 font-medium',
-            {
-              'text-primary-700': isSelected,
-              'text-neutral-700': !isSelected
-            }
-          )}>
-            {category.name}
+          <span className="flex-1 font-medium truncate">
+            {category.nombre || category.name}
           </span>
 
-          {/* Item Count */}
-          {showItemCount && category.treatment_count > 0 && (
+          {/* Treatment Count Badge */}
+          {showTreatmentCount && (category.treatments_count > 0 || category.total_tratamientos > 0 || category.treatment_count > 0) && (
             <span className={clsx(
-              'ml-2 px-2 py-1 text-xs rounded-full',
+              'ml-2 px-2.5 py-0.5 text-xs font-semibold rounded-full',
               {
-                'bg-primary-100 text-primary-600': isSelected,
-                'bg-neutral-100 text-neutral-600': !isSelected
+                'bg-primary-100 text-primary-800': isSelected,
+                'bg-gray-100 text-gray-600': !isSelected
               }
             )}>
-              {category.treatment_count}
+              {category.treatments_count || category.total_tratamientos || category.treatment_count || 0}
             </span>
           )}
+
+          {/* Level Indicator */}
+          <span className="ml-2 text-xs text-gray-400">
+            L{depth}
+          </span>
         </div>
 
         {/* Children */}
         {hasChildren && isExpanded && (
-          <div className="category-children">
-            {category.children.map(child => renderCategory(child, depth + 1))}
+          <div className="children">
+            {category.children.map((child) => 
+              renderTreeNode(child, depth + 1)
+            )}
           </div>
         )}
       </div>
@@ -161,16 +225,16 @@ const CategoryTree = ({
 
   if (filteredCategories.length === 0) {
     return (
-      <div className={clsx('p-6 text-center text-neutral-500', className)}>
+      <div className={clsx('p-6 text-center text-gray-500', className)}>
         {searchTerm ? (
           <>
-            <Folder className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
-            <p>No se encontraron categorías que coincidan con "{searchTerm}"</p>
+            <Folder className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm">No se encontraron categorías que coincidan con "{searchTerm}"</p>
           </>
         ) : (
           <>
-            <Folder className="w-12 h-12 mx-auto mb-3 text-neutral-300" />
-            <p>No hay categorías disponibles</p>
+            <Folder className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm">No hay categorías disponibles</p>
           </>
         )}
       </div>
@@ -179,7 +243,39 @@ const CategoryTree = ({
 
   return (
     <div className={clsx('category-tree', className)}>
-      {filteredCategories.map(category => renderCategory(category))}
+      {/* Tree Controls */}
+      <div className="flex justify-between items-center mb-4 p-3 bg-gray-50 rounded-lg">
+        <h3 className="text-sm font-semibold text-gray-800">
+          Categorías de Tratamientos
+        </h3>
+        <div className="flex gap-2">
+          <button
+            onClick={expandAll}
+            className="px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+          >
+            Expandir
+          </button>
+          <button
+            onClick={collapseAll}
+            className="px-2 py-1 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            Contraer
+          </button>
+        </div>
+      </div>
+
+      {/* Tree Nodes */}
+      <div className="tree-container space-y-1 max-h-96 overflow-y-auto">
+        {filteredCategories.map(category => renderTreeNode(category))}
+      </div>
+
+      {/* Summary */}
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+        <div className="flex justify-between">
+          <span>Total: {categories.length}</span>
+          <span>Expandidas: {expandedNodes.size}</span>
+        </div>
+      </div>
     </div>
   );
 };

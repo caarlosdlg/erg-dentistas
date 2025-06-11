@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import DentalERP from './pages/DentalERP';
-import LoginPage from './pages/LoginPage';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import AppRouter from './router/AppRouter';
 
 // Import demo pages for testing
 import DesignSystemDemo from './pages/DesignSystemDemo';
@@ -109,52 +107,38 @@ function DentalERPDemo() {
   const renderDemoContent = () => {
     switch (demoMode) {
       case 'erp':
-        return (
-          <ProtectedRoute>
-            <DentalERP />
-          </ProtectedRoute>
-        );
+        return <AppRouter />;
       case 'showcase':
-        return (
-          <ProtectedRoute>
-            <ResponsiveShowcase />
-          </ProtectedRoute>
-        );
+        return <ResponsiveShowcase />;
       case 'components':
         return (
-          <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50">
-              <div className="max-w-7xl mx-auto py-8 px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-2xl font-bold mb-4">Sistema de Diseño</h2>
-                    <DesignSystemTest />
-                  </div>
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <h2 className="text-2xl font-bold mb-4">Demo Responsive</h2>
-                    <ResponsiveDemo />
-                  </div>
+          <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto py-8 px-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-2xl font-bold mb-4">Sistema de Diseño</h2>
+                  <DesignSystemTest />
+                </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h2 className="text-2xl font-bold mb-4">Demo Responsive</h2>
+                  <ResponsiveDemo />
                 </div>
               </div>
             </div>
-          </ProtectedRoute>
+          </div>
         );
       default:
-        return (
-          <ProtectedRoute>
-            <DentalERP />
-          </ProtectedRoute>
-        );
+        return <AppRouter />;
     }
   };
 
   return (
-    <AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <div className="min-h-screen bg-gray-50">
         <DemoNavigation />
         {renderDemoContent()}
       </div>
-    </AuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 
