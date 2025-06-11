@@ -188,6 +188,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Login con email solamente (para dentistas)
+  const loginWithEmail = async (email) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/login-email/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        login(data.user, data.tokens);
+        return { user: data.user, tokens: data.tokens };
+      } else {
+        throw new Error(data.error || 'Error en autenticación con email');
+      }
+    } catch (error) {
+      console.error('Error en login con email:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Función de login
   const login = (userData, tokenData) => {
     setUser(userData);
@@ -221,6 +252,7 @@ export const AuthProvider = ({ children }) => {
     loginDev,
     loginWithGitHubDev,
     loginWithGitHub,
+    loginWithEmail,
   };
 
   return (

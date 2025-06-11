@@ -185,3 +185,77 @@ def github_auth(request):
             {'error': 'Error interno del servidor', 'details': str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_email_only(request):
+    """
+    Vista para autenticación de dentistas solo con email
+    """
+    email = request.data.get('email')
+    
+    if not email:
+        return Response(
+            {'error': 'Email requerido'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        # Buscar usuario dentista por email
+        user = User.objects.get(email=email.strip())
+        
+        # Verificar que el usuario esté activo
+        if not user.is_active:
+            return Response(
+                {'error': 'Usuario inactivo'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Generar tokens JWT
+        refresh = RefreshToken.for_user(user)
+        
+        # Preparar datos del usuario para la respuesta
+        user_data = {
+            'id': user.id,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'is_staff': user.is_staff,
+            'is_superuser': user.is_superuser,
+            'tipo': 'dentista'
+        }
+        
+        # Intentar obtener información adicional del dentista si existe
+        try:
+            if hasattr(user, 'dentista'):
+                dentista = user.dentista
+                user_data['dentista_info'] = {
+                    'especialidad': getattr(dentista, 'especialidad', ''),
+                    'telefono': getattr(dentista, 'telefono', ''),
+                    'cedula': getattr(dentista, 'cedula', '')
+                }
+        except Exception:
+            pass  # Si no tiene relación con dentista, continuamos
+        
+        logger.info(f"Login con email exitoso para dentista: {email}")
+        
+        return Response({
+            'success': True,
+            'user': user_data,
+            'tokens': {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh)
+            }
+        }, status=status.HTTP_200_OK)
+        
+    except User.DoesNotExist:
+        return Response(
+            {'error': 'Dentista no encontrado con este email'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except Exception as e:
+        logger.error(f"Error en login con email: {e}")
+        return Response(
+            {'error': 'Error interno del servidor'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

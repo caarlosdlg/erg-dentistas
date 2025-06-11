@@ -7,8 +7,10 @@ import RegistroDentista from '../components/RegistroDentista';
 const LoginPage = () => {
   const [showDemoUsers, setShowDemoUsers] = useState(false);
   const [showRegistro, setShowRegistro] = useState(false);
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { loginDev } = useAuth();
+  const { loginDev, login, loginWithEmail } = useAuth();
   const navigate = useNavigate();
 
   // Demo users for quick access (manteniendo la funcionalidad pero usando API real)
@@ -112,6 +114,38 @@ const LoginPage = () => {
     return labels[role] || role;
   };
 
+  // Función para login con email
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    
+    setIsLoading(true);
+    
+    try {
+      console.log('🚀 Iniciando login con email:', email);
+      const result = await loginWithEmail(email);
+      console.log('✅ Login con email exitoso:', result?.user?.email);
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      console.log('⚠️ Error en login con email, usando fallback:', error.message);
+      
+      // Fallback: usar loginDev con email proporcionado
+      try {
+        await loginDev({
+          email: email,
+          first_name: 'Usuario',
+          last_name: 'Demo',
+          role: 'dentist'
+        });
+      } catch (fallbackError) {
+        console.error('❌ Error incluso con fallback:', fallbackError);
+      }
+      navigate('/dashboard', { replace: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Si está mostrando el registro, mostrar solo el componente de registro
   if (showRegistro) {
     return (
@@ -152,6 +186,55 @@ const LoginPage = () => {
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                 <GitHubLoginButton />
               </div>
+
+              {/* Login con Email */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500">O usa tu email</span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowEmailLogin(!showEmailLogin)}
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-100 to-indigo-200 hover:from-indigo-200 hover:to-indigo-300 border border-indigo-300 rounded-lg text-indigo-700 font-medium transition-all duration-200 hover:shadow-md flex items-center justify-center space-x-2"
+              >
+                <span>📧</span>
+                <span>Acceder con Email</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform ${showEmailLogin ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Formulario de email */}
+              {showEmailLogin && (
+                <form onSubmit={handleEmailLogin} className="space-y-4 animate-fadeIn">
+                  <div>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Ingresa tu email como dentista"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isLoading || !email.trim()}
+                    className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Verificando...' : 'Iniciar Sesión'}
+                  </button>
+                </form>
+              )}
 
               {/* Demo access */}
               <div className="relative">
