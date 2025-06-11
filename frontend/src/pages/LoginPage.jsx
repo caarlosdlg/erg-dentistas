@@ -383,17 +383,8 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-6 text-white">
-                <h3 className="font-semibold text-lg mb-2">🚀 Demo Completo Disponible</h3>
-                <p className="text-blue-100 text-sm mb-4">
-                  Explora todas las funcionalidades con datos reales de ejemplo
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-xs">✓ Gestión completa</span>
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-xs">✓ Datos de prueba</span>
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-xs">✓ Sin limitaciones</span>
-                </div>
-              </div>
+              
+              
             </div>
           </div>
         </div>
