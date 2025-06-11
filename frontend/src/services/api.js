@@ -34,12 +34,12 @@ class APIService {
       if (response.status === 401) {
         console.log('Token inválido o expirado, intentando re-autenticar...');
         
-        // Try to get new token
+        // Try to get new token using GitHub auth
         try {
-          const authResponse = await fetch('http://localhost:8000/api/auth/google/', {
+          const authResponse = await fetch('http://localhost:8000/api/auth/github/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ access_token: 'dev_test_token' })
+            body: JSON.stringify({ code: 'dev_test_code' })
           });
 
           if (authResponse.ok) {
@@ -130,6 +130,11 @@ class APIService {
     return this.request(`/pacientes/search/?${queryString}`);
   }
 
+  // Get patients formatted for dropdown selection
+  async getPatientsForDropdown() {
+    return this.request('/pacientes/dropdown/');
+  }
+
   // Appointments API
   async getAppointments(params = {}) {
     const queryString = new URLSearchParams(params).toString();
@@ -163,6 +168,21 @@ class APIService {
 
   async confirmAppointment(id) {
     return this.request(`/citas/${id}/confirm/`, {
+      method: 'POST',
+    });
+  }
+
+  // Create appointment with automatic email notification
+  async createAppointmentWithEmail(appointmentData) {
+    return this.request('/citas/', {
+      method: 'POST',
+      body: JSON.stringify(appointmentData),
+    });
+  }
+
+  // Send appointment confirmation email manually
+  async sendAppointmentConfirmationEmail(id) {
+    return this.request(`/citas/${id}/send_confirmation_email/`, {
       method: 'POST',
     });
   }

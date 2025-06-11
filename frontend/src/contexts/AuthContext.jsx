@@ -123,35 +123,6 @@ export const AuthProvider = ({ children }) => {
     return { user: mockUser, tokens: mockTokens };
   };
 
-  // Login con Google para desarrollo
-  const loginWithGoogleDev = async () => {
-    setIsLoading(true);
-    
-    // Simular delay de Google OAuth
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const mockUser = {
-      id: 2,
-      email: 'carlos@dentalerp.com',
-      first_name: 'Carlos',
-      last_name: 'Delgado',
-      is_staff: true,
-      is_superuser: false,
-      role: 'dentist',
-      google_id: 'mock-google-id'
-    };
-
-    const mockTokens = {
-      access: 'google-dev-access-token-' + Date.now(),
-      refresh: 'google-dev-refresh-token-' + Date.now()
-    };
-
-    login(mockUser, mockTokens);
-    setIsLoading(false);
-    
-    return { user: mockUser, tokens: mockTokens };
-  };
-
   // Login con GitHub para desarrollo
   const loginWithGitHubDev = async () => {
     setIsLoading(true);
@@ -248,7 +219,6 @@ export const AuthProvider = ({ children }) => {
     getValidToken,
     refreshToken,
     loginDev,
-    loginWithGoogleDev,
     loginWithGitHubDev,
     loginWithGitHub,
   };

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import UserProfile from './components/auth/UserProfile';
@@ -113,16 +112,12 @@ function AppWithAuth() {
     return <ResponsiveShowcase />;
   };
 
-  const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <AuthProvider>
-        <ProtectedRoute>
-          <MainContent />
-        </ProtectedRoute>
-      </AuthProvider>
-    </GoogleOAuthProvider>
+    <AuthProvider>
+      <ProtectedRoute>
+        <MainContent />
+      </ProtectedRoute>
+    </AuthProvider>
   );
 }
 

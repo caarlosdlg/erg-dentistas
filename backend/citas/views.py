@@ -69,46 +69,26 @@ class CitaViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """
-        Crear cita y opcionalmente enviar email de confirmación
+        Create appointment
         """
         try:
-            # Crear la cita usando el serializer
+            # Create appointment using serializer
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             cita = serializer.save()
             
-            # Auto-generar número de cita si no existe
+            # Auto-generate appointment number if not exists
             if not cita.numero_cita:
                 cita.numero_cita = f"CIT-{cita.id.hex[:8].upper()}"
                 cita.save()
             
             response_data = CitaSerializer(cita).data
-            
-            # Verificar si se debe enviar email automáticamente
-            enviar_email = request.data.get('enviar_email_automatico', False)
-            
-            if enviar_email and cita.estado in ['programada', 'confirmada']:
-                try:
-                    email_service = AppointmentEmailService()
-                    email_enviado = email_service.send_appointment_confirmation_email(cita)
-                    
-                    response_data['email_enviado'] = email_enviado
-                    if email_enviado:
-                        logger.info(f"Email de confirmación enviado para cita {cita.numero_cita}")
-                    else:
-                        logger.warning(f"No se pudo enviar email para cita {cita.numero_cita}")
-                        
-                except Exception as email_error:
-                    logger.error(f"Error enviando email para cita {cita.numero_cita}: {str(email_error)}")
-                    response_data['email_enviado'] = False
-                    response_data['email_error'] = str(email_error)
-            
             return Response(response_data, status=status.HTTP_201_CREATED)
             
         except Exception as e:
-            logger.error(f"Error creando cita: {str(e)}")
+            logger.error(f"Error creating appointment: {str(e)}")
             return Response(
-                {'error': f'Error al crear la cita: {str(e)}'}, 
+                {'error': f'Error creating appointment: {str(e)}'}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
 
