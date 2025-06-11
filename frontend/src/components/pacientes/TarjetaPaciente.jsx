@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import emailService from '../../services/emailService';
-import resendEmailService from '../../services/resendEmailService';
+import backendEmailService from '../../services/backendEmailService';
 
 const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEmail }) => {
   const [showEmailOptions, setShowEmailOptions] = useState(false);
@@ -75,8 +75,8 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
       let result;
       switch (tipo) {
         case 'bienvenida':
-          console.log('📧 Enviando email de bienvenida con Resend API...');
-          result = await resendEmailService.sendWelcomeEmail(paciente);
+          console.log('📧 Enviando email de bienvenida...');
+          result = await backendEmailService.sendWelcomeEmail(paciente);
           if (result.success) {
             alert(`✅ Email de bienvenida enviado exitosamente a ${email}`);
           } else {
@@ -85,7 +85,7 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEm
           break;
         case 'recordatorio':
           console.log('📧 Enviando email de recordatorio...');
-          result = await resendEmailService.sendAppointmentReminderEmail(paciente, null);
+          result = await backendEmailService.sendReminderEmail(paciente, null);
           if (result.success) {
             alert(`✅ Email de recordatorio enviado exitosamente a ${email}`);
           } else {
@@ -103,7 +103,7 @@ Si tiene alguna pregunta o necesita programar una cita, no dude en contactarnos.
 
 Saludos cordiales,
 Equipo de la Clínica Dental`;
-          result = await resendEmailService.sendGeneralInfoEmail(paciente, subject, message);
+          result = await backendEmailService.sendGeneralEmail(paciente, subject, message);
           if (result.success) {
             alert(`✅ Email general enviado exitosamente a ${email}`);
           } else {

@@ -55,6 +55,13 @@ const DentalERP = () => {
       icon: '📦',
       description: 'Gestión de suministros',
       path: '/inventario'
+    },
+    {
+      id: 'test-email',
+      label: 'Test Emails',
+      icon: '📧',
+      description: 'Pruebas de sistema de emails',
+      path: '/test-email'
     }
   ];
 

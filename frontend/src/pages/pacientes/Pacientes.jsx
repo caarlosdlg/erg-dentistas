@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePacientes } from '../../hooks/usePacientes';
 import TarjetaPaciente from '../../components/pacientes/TarjetaPaciente';
 import FiltrosPacientes from '../../components/pacientes/FiltrosPacientes';
+import resendEmailService from '../../services/resendEmailService';
 
 const Pacientes = () => {
   const navigate = useNavigate();
@@ -116,29 +117,19 @@ const Pacientes = () => {
     }
 
     try {
-      // Crear un email personalizado para el paciente
-      const subject = `Comunicación desde Clínica Dental - ${paciente.nombre_completo}`;
-      const body = `Estimado/a ${paciente.nombre_completo},
-
-Esperamos que se encuentre bien. Nos ponemos en contacto desde la clínica dental para...
-
-Datos del paciente:
-- Expediente: ${paciente.numero_expediente}
-- Email: ${paciente.email}
-- Teléfono: ${paciente.telefono || 'No registrado'}
-
-Saludos cordiales,
-Equipo de la Clínica Dental`;
-
-      // Abrir el cliente de email con el contenido predefinido
-      const mailto = `mailto:${paciente.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      window.open(mailto);
-
-      console.log(`📧 Abriendo email para paciente: ${paciente.nombre_completo} (${paciente.email})`);
+      console.log('📧 Enviando email de bienvenida con Resend API...');
+      const result = await resendEmailService.sendWelcomeEmail(paciente);
+      
+      if (result.success) {
+        alert(`✅ Email de bienvenida enviado exitosamente a ${paciente.email}`);
+        console.log(`✅ Email enviado a: ${paciente.nombre_completo} (${paciente.email})`);
+      } else {
+        throw new Error(result.error || 'Error desconocido al enviar email');
+      }
       
     } catch (error) {
-      console.error('Error al preparar email:', error);
-      alert('Error al abrir el cliente de email');
+      console.error('❌ Error al enviar email:', error);
+      alert('Error al enviar el email: ' + error.message);
     }
   };
 

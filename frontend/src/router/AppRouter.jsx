@@ -18,6 +18,7 @@ import DesignSystemDemo from '../pages/DesignSystemDemo';
 import DesignSystemTest from '../pages/DesignSystemTest';
 import ResponsiveDemo from '../pages/ResponsiveDemo';
 import ResponsiveShowcase from '../pages/ResponsiveShowcase';
+import TestWelcomeEmail from '../pages/TestWelcomeEmail';
 
 // Authentication callback components
 import GitHubCallback from '../components/auth/GitHubCallback';
@@ -45,6 +46,7 @@ const AppRouter = () => {
             <Route path="/demo/design-test" element={<DesignSystemTest />} />
             <Route path="/demo/responsive" element={<ResponsiveDemo />} />
             <Route path="/demo/showcase" element={<ResponsiveShowcase />} />
+            <Route path="/demo/test-email" element={<TestWelcomeEmail />} />
             
             {/* Protected application routes */}
             <Route path="/" element={
@@ -65,6 +67,7 @@ const AppRouter = () => {
               <Route path="citas" element={<Citas />} />
               <Route path="tratamientos" element={<Tratamientos />} />
               <Route path="inventario" element={<Inventario />} />
+              <Route path="test-email" element={<TestWelcomeEmail />} />
             </Route>
             
             {/* Fallback route */}
