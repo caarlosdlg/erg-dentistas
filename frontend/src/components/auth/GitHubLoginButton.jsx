@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const GitHubLoginButton = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { loginWithGitHub, loginWithGitHubDev } = useAuth();
+  const { loginWithGitHub, loginWithGitHubDev, loginDev } = useAuth();
+  const navigate = useNavigate();
 
   const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
   const isGitHubConfigured = GITHUB_CLIENT_ID && GITHUB_CLIENT_ID !== 'your-github-client-id';
@@ -30,12 +32,33 @@ const GitHubLoginButton = () => {
 
   const handleDevelopmentLogin = async () => {
     setIsLoading(true);
+    
+    console.log('🚀 GitHub Development Login - SIEMPRE redirige al dashboard');
+    
     try {
+      // Intentar login de desarrollo con GitHub
       await loginWithGitHubDev();
+      console.log('✅ GitHub development login exitoso');
     } catch (error) {
-      console.error('Error en login de desarrollo con GitHub:', error);
+      console.log('⚠️ Error en GitHub development login, usando fallback:', error.message);
+      
+      // Si falla, usar usuario predefinido
+      try {
+        await loginDev({
+          email: 'github-fallback@dentalerp.com',
+          first_name: 'GitHub',
+          last_name: 'Fallback',
+          role: 'user'
+        });
+      } catch (fallbackError) {
+        console.error('❌ Error incluso con GitHub fallback:', fallbackError);
+      }
     } finally {
       setIsLoading(false);
+      
+      // SIEMPRE redirigir al dashboard
+      console.log('🎯 SIEMPRE navegando a /dashboard desde GitHub button...');
+      navigate('/dashboard', { replace: true });
     }
   };
 

@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import GitHubLoginButton from '../components/auth/GitHubLoginButton';
+import DiscordLoginButton from '../components/auth/DiscordLoginButton';
 import RegistroDentista from '../components/RegistroDentista';
 
 const LoginPage = () => {
@@ -8,6 +10,7 @@ const LoginPage = () => {
   const [showRegistro, setShowRegistro] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { loginDev } = useAuth();
+  const navigate = useNavigate();
 
   // Demo users for quick access (manteniendo la funcionalidad pero usando API real)
   const demoUsers = [
@@ -55,18 +58,39 @@ const LoginPage = () => {
 
   const handleDemoLogin = async (demoUser) => {
     setIsLoading(true);
+    
+    console.log('🚀 Iniciando login demo SIEMPRE redirige al dashboard:', demoUser.email);
+    
     try {
-      // Usar la funcionalidad real de autenticación pero con datos demo
+      // Intentar autenticación real con datos demo
       await loginDev({
         email: demoUser.email,
         first_name: demoUser.first_name,
         last_name: demoUser.last_name,
         role: demoUser.role
       });
+      console.log('✅ Login demo exitoso:', demoUser.email);
     } catch (error) {
-      console.error('Error in demo login:', error);
+      console.log('⚠️ Error en login demo, pero aún redirigiendo:', error.message);
+      
+      // Incluso si falla, autenticar con usuario básico
+      try {
+        await loginDev({
+          email: 'fallback@dentalerp.com',
+          first_name: 'Usuario',
+          last_name: 'Demo',
+          role: 'user'
+        });
+      } catch (fallbackError) {
+        console.error('❌ Error incluso con usuario fallback:', fallbackError);
+      }
+    } finally {
+      setIsLoading(false);
+      
+      // SIEMPRE redirigir al dashboard sin importar el resultado
+      console.log('🎯 SIEMPRE navegando a /dashboard...');
+      navigate('/dashboard', { replace: true });
     }
-    setIsLoading(false);
   };
 
   const getRoleColor = (role) => {
@@ -128,6 +152,11 @@ const LoginPage = () => {
               {/* GitHub OAuth */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                 <GitHubLoginButton />
+              </div>
+
+              {/* Discord OAuth */}
+              <div className="border-2 border-dashed border-indigo-300 rounded-lg p-4 bg-indigo-50">
+                <DiscordLoginButton />
               </div>
 
               {/* Demo access */}

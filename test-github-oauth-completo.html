@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Prueba Completa GitHub OAuth</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #333;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+        .test-section.github {
+            border-color: #333;
+            background: linear-gradient(135deg, #f6f8fa, #fff);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            margin: 5px;
+        }
+        .status-success { background: #10B981; color: white; }
+        .status-warning { background: #F59E0B; color: white; }
+        .status-error { background: #EF4444; color: white; }
+        .status-info { background: #3B82F6; color: white; }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-github {
+            background: #333;
+            color: white;
+        }
+        .btn-github:hover {
+            background: #555;
+            transform: translateY(-2px);
+        }
+        .btn-test {
+            background: #4F46E5;
+            color: white;
+        }
+        .btn-test:hover {
+            background: #3730A3;
+            transform: translateY(-2px);
+        }
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+        .info-box {
+            background: #e0f2fe;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+        .log-box {
+            background: #1f2937;
+            color: #f3f4f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 6px;
+            border-left: 4px solid #10B981;
+        }
+        .flow-step.pending {
+            border-left-color: #F59E0B;
+            opacity: 0.7;
+        }
+        .flow-step.error {
+            border-left-color: #EF4444;
+        }
+        .step-number {
+            background: #4F46E5;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 Prueba Completa GitHub OAuth</h1>
+            <p>Verificación del flujo completo de autenticación con GitHub</p>
+        </div>
+
+        <!-- Estado Actual -->
+        <div class="test-section">
+            <h3>📊 Estado Actual del Sistema</h3>
+            <div id="system-status">
+                <span class="status-badge status-info">Verificando...</span>
+            </div>
+        </div>
+
+        <!-- Configuración GitHub -->
+        <div class="test-section github">
+            <h3>⚙️ Configuración GitHub OAuth</h3>
+            <div class="info-box">
+                <strong>Application Name:</strong> erpDental<br>
+                <strong>Client ID:</strong> <span id="client-id">Ov23liJNJLbSggKfbHCe</span><br>
+                <strong>Homepage URL:</strong> http://localhost:5173<br>
+                <strong>Authorization callback URL:</strong> http://localhost:5173/auth/github/callback
+            </div>
+            <div class="status-badge status-success">✅ Configurado</div>
+        </div>
+
+        <!-- Flujo de Prueba -->
+        <div class="test-section">
+            <h3>🔄 Flujo de Autenticación GitHub</h3>
+            <div id="flow-steps">
+                <div class="flow-step pending" id="step-1">
+                    <div class="step-number">1</div>
+                    <div>
+                        <strong>Iniciar OAuth</strong><br>
+                        <small>Hacer clic en "Autenticación GitHub Real"</small>
+                    </div>
+                </div>
+                <div class="flow-step pending" id="step-2">
+                    <div class="step-number">2</div>
+                    <div>
+                        <strong>Redirección a GitHub</strong><br>
+                        <small>github.com/login/oauth/authorize</small>
+                    </div>
+                </div>
+                <div class="flow-step pending" id="step-3">
+                    <div class="step-number">3</div>
+                    <div>
+                        <strong>Autorización del Usuario</strong><br>
+                        <small>Usuario autoriza la aplicación</small>
+                    </div>
+                </div>
+                <div class="flow-step pending" id="step-4">
+                    <div class="step-number">4</div>
+                    <div>
+                        <strong>Callback a DentalERP</strong><br>
+                        <small>/auth/github/callback?code=...</small>
+                    </div>
+                </div>
+                <div class="flow-step pending" id="step-5">
+                    <div class="step-number">5</div>
+                    <div>
+                        <strong>Procesamiento Backend</strong><br>
+                        <small>Intercambio de código por token</small>
+                    </div>
+                </div>
+                <div class="flow-step pending" id="step-6">
+                    <div class="step-number">6</div>
+                    <div>
+                        <strong>Redirección al Dashboard</strong><br>
+                        <small>navigate('/dashboard')</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Opciones de Prueba -->
+        <div class="test-section">
+            <h3>🧪 Opciones de Prueba</h3>
+            
+            <!-- GitHub OAuth Real -->
+            <div style="margin: 20px 0;">
+                <h4>1. Autenticación GitHub Real</h4>
+                <p>Utiliza el flujo OAuth real de GitHub con tu cuenta.</p>
+                <button id="real-github-auth" class="btn btn-github">
+                    🔒 Autenticación GitHub Real
+                </button>
+            </div>
+
+            <!-- Simulación de Callback -->
+            <div style="margin: 20px 0;">
+                <h4>2. Simular Callback Exitoso</h4>
+                <p>Simula un callback exitoso sin pasar por GitHub.</p>
+                <button id="simulate-success" class="btn btn-test">
+                    ✅ Simular Callback Exitoso
+                </button>
+            </div>
+
+            <!-- Ir a la aplicación -->
+            <div style="margin: 20px 0;">
+                <h4>3. Ir a DentalERP</h4>
+                <p>Navegar directamente a la aplicación principal.</p>
+                <a href="http://localhost:5173/login" class="btn btn-test" target="_blank">
+                    🏠 Ir a Login Page
+                </a>
+                <a href="http://localhost:5173/dashboard" class="btn btn-test" target="_blank">
+                    📊 Ir a Dashboard
+                </a>
+            </div>
+
+            <!-- Limpiar datos -->
+            <div style="margin: 20px 0;">
+                <h4>4. Limpiar Datos de Autenticación</h4>
+                <p>Eliminar tokens y datos de usuario guardados.</p>
+                <button id="clear-auth" class="btn btn-danger">
+                    🗑️ Limpiar Auth
+                </button>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="test-section">
+            <h3>📋 Logs de Testing</h3>
+            <div class="log-box" id="test-logs">
+                <div style="color: #10B981;">🚀 Iniciando pruebas de GitHub OAuth...</div>
+            </div>
+            <button id="clear-logs" class="btn btn-test">🧹 Limpiar Logs</button>
+        </div>
+
+        <!-- Información de Debug -->
+        <div class="test-section">
+            <h3>🔍 Información de Debug</h3>
+            <div id="debug-info" class="info-box">
+                Verificando estado...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración
+        const CLIENT_ID = 'Ov23liJNJLbSggKfbHCe';
+        const REDIRECT_URI = 'http://localhost:5173/auth/github/callback';
+        
+        // Logging function
+        function log(message, type = 'info') {
+            const logsContainer = document.getElementById('test-logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#3B82F6',
+                success: '#10B981', 
+                warning: '#F59E0B',
+                error: '#EF4444'
+            };
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = colors[type];
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // Update system status
+        function updateSystemStatus() {
+            const statusContainer = document.getElementById('system-status');
+            
+            // Check if servers are running
+            Promise.all([
+                fetch('http://localhost:5173').then(() => true).catch(() => false),
+                fetch('http://localhost:8000/api/auth/github/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: 'test' })
+                }).then(() => true).catch(() => false)
+            ]).then(([frontend, backend]) => {
+                statusContainer.innerHTML = `
+                    <span class="status-badge ${frontend ? 'status-success' : 'status-error'}">
+                        Frontend: ${frontend ? '✅ Online' : '❌ Offline'}
+                    </span>
+                    <span class="status-badge ${backend ? 'status-success' : 'status-error'}">
+                        Backend: ${backend ? '✅ Online' : '❌ Offline'}
+                    </span>
+                `;
+                log(`Sistema: Frontend ${frontend ? 'Online' : 'Offline'}, Backend ${backend ? 'Online' : 'Offline'}`, frontend && backend ? 'success' : 'error');
+            });
+        }
+
+        // Update debug info
+        function updateDebugInfo() {
+            const debugContainer = document.getElementById('debug-info');
+            const user = localStorage.getItem('dental_erp_user');
+            const tokens = localStorage.getItem('dental_erp_tokens');
+            
+            debugContainer.innerHTML = `
+                <strong>URL Actual:</strong> ${window.location.href}<br>
+                <strong>Usuario Autenticado:</strong> ${user ? 'Sí (' + JSON.parse(user).email + ')' : 'No'}<br>
+                <strong>Tokens Presentes:</strong> ${tokens ? 'Sí' : 'No'}<br>
+                <strong>Timestamp:</strong> ${new Date().toISOString()}
+            `;
+        }
+
+        // Real GitHub authentication
+        document.getElementById('real-github-auth').addEventListener('click', () => {
+            log('🚀 Iniciando autenticación GitHub real...', 'info');
+            const state = Math.random().toString(36).substring(2, 15);
+            const githubUrl = `https://github.com/login/oauth/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=user:email&state=${state}`;
+            
+            log(`🔗 Redirigiendo a GitHub OAuth: ${githubUrl}`, 'info');
+            window.location.href = githubUrl;
+        });
+
+        // Simulate successful callback
+        document.getElementById('simulate-success').addEventListener('click', () => {
+            log('🎭 Simulando callback exitoso...', 'warning');
+            const testCode = 'test_code_' + Date.now();
+            const callbackUrl = `http://localhost:5173/auth/github/callback?code=${testCode}&state=test_state`;
+            log(`🔗 Navegando a: ${callbackUrl}`, 'warning');
+            window.location.href = callbackUrl;
+        });
+
+        // Clear authentication
+        document.getElementById('clear-auth').addEventListener('click', () => {
+            localStorage.removeItem('dental_erp_user');
+            localStorage.removeItem('dental_erp_tokens');
+            log('🗑️ Datos de autenticación eliminados', 'success');
+            updateDebugInfo();
+        });
+
+        // Clear logs
+        document.getElementById('clear-logs').addEventListener('click', () => {
+            document.getElementById('test-logs').innerHTML = '<div style="color: #10B981;">🧹 Logs limpiados...</div>';
+        });
+
+        // Update flow steps based on URL
+        function updateFlowSteps() {
+            const url = window.location.href;
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (url.includes('/auth/github/callback')) {
+                log('📍 Detectado callback de GitHub', 'success');
+                document.getElementById('step-4').classList.remove('pending');
+                document.getElementById('step-4').classList.add('success');
+                
+                if (urlParams.get('code')) {
+                    log('✅ Código de autorización recibido', 'success');
+                    document.getElementById('step-5').classList.remove('pending');
+                }
+                
+                if (urlParams.get('error')) {
+                    log('❌ Error en callback: ' + urlParams.get('error'), 'error');
+                    document.getElementById('step-4').classList.add('error');
+                }
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('🔧 Página de prueba GitHub OAuth cargada', 'success');
+            updateSystemStatus();
+            updateDebugInfo();
+            updateFlowSteps();
+            
+            // Update debug info every 5 seconds
+            setInterval(updateDebugInfo, 5000);
+        });
+
+        // Handle callback if we're on the callback URL
+        if (window.location.pathname.includes('/callback')) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+            const error = urlParams.get('error');
+            
+            if (code) {
+                log(`✅ Callback exitoso detectado con código: ${code.substring(0, 10)}...`, 'success');
+            }
+            
+            if (error) {
+                log(`❌ Error en callback: ${error}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

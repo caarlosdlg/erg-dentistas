@@ -19,6 +19,10 @@ import DesignSystemTest from '../pages/DesignSystemTest';
 import ResponsiveDemo from '../pages/ResponsiveDemo';
 import ResponsiveShowcase from '../pages/ResponsiveShowcase';
 
+// Authentication callback components
+import GitHubCallback from '../components/auth/GitHubCallback';
+import DiscordCallback from '../components/auth/DiscordCallback';
+
 // Other pages
 import Dashboard from '../pages/Dashboard';
 import Citas from '../pages/Citas';
@@ -33,6 +37,10 @@ const AppRouter = () => {
           <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
+            
+            {/* Authentication callback routes */}
+            <Route path="/auth/github/callback" element={<GitHubCallback />} />
+            <Route path="/auth/discord/callback" element={<DiscordCallback />} />
             
             {/* Demo routes */}
             <Route path="/demo/design-system" element={<DesignSystemDemo />} />
