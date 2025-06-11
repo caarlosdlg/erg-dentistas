@@ -1,12 +1,10 @@
 from django.db import models
 from django.utils.text import slugify
 import uuid
-from mptt.models import MPTTModel, TreeForeignKey
 
-class CategoriaTratamiento(MPTTModel):
+class CategoriaTratamiento(models.Model):
     """
-    Modelo de categorías jerárquicas para tratamientos usando MPTT.
-    Permite crear estructuras de árbol con niveles ilimitados.
+    Modelo de categorías jerárquicas para tratamientos usando parent/child relationship.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     
@@ -29,8 +27,8 @@ class CategoriaTratamiento(MPTTModel):
         help_text="Descripción detallada de la categoría"
     )
     
-    # Relación jerárquica
-    parent = TreeForeignKey(
+    # Relación jerárquica simple
+    parent = models.ForeignKey(
         'self', 
         on_delete=models.CASCADE, 
         null=True, 
@@ -87,21 +85,17 @@ class CategoriaTratamiento(MPTTModel):
     )
     
     # Timestamps
-    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
-    
-    class MPTTMeta:
-        order_insertion_by = ['orden', 'nombre']
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Categoría de Tratamiento"
         verbose_name_plural = "Categorías de Tratamientos"
-        ordering = ['tree_id', 'lft']
+        ordering = ['orden', 'nombre']
         indexes = [
-            models.Index(fields=['activo'], name='tratamiento_activo_db81a4_idx'),
-            models.Index(fields=['parent'], name='tratamiento_parent__8f9e32_idx'),
-            models.Index(fields=['slug'], name='tratamiento_slug_3d6c06_idx'),
-            models.Index(fields=['tree_id', 'lft'], name='tratamiento_tree_id_lft_idx'),
+            models.Index(fields=['activo'], name='tratamiento_activo_simple_idx'),
+            models.Index(fields=['parent'], name='tratamiento_parent_simple_idx'),
+            models.Index(fields=['slug'], name='tratamiento_slug_simple_idx'),
         ]
     
     def save(self, *args, **kwargs):
@@ -117,16 +111,70 @@ class CategoriaTratamiento(MPTTModel):
     
     def __str__(self):
         """Representación en string mostrando la jerarquía"""
-        return f"{'-- ' * self.level}{self.nombre}"
+        level = self.get_level()
+        return f"{'-- ' * level}{self.nombre}"
+    
+    def get_level(self):
+        """Calcular el nivel en la jerarquía"""
+        level = 0
+        current = self.parent
+        while current:
+            level += 1
+            current = current.parent
+            if level > 10:  # Prevenir loops infinitos
+                break
+        return level
     
     def get_full_path(self):
         """Obtener la ruta completa de la categoría"""
-        return " > ".join([ancestor.nombre for ancestor in self.get_ancestors(include_self=True)])
+        path = []
+        current = self
+        while current:
+            path.insert(0, current.nombre)
+            current = current.parent
+            if len(path) > 10:  # Prevenir loops infinitos
+                break
+        return " > ".join(path)
     
     @property
     def full_path(self):
         """Property para acceder a la ruta completa"""
         return self.get_full_path()
+    
+    def get_children(self):
+        """Obtener hijos directos"""
+        return self.children.filter(activo=True)
+    
+    def get_descendants(self, include_self=False):
+        """Obtener todos los descendientes"""
+        descendants = []
+        if include_self:
+            descendants.append(self)
+        
+        def collect_descendants(categoria):
+            for child in categoria.get_children():
+                descendants.append(child)
+                collect_descendants(child)
+        
+        collect_descendants(self)
+        return descendants
+    
+    def get_ancestors(self, include_self=False):
+        """Obtener todos los ancestros"""
+        ancestors = []
+        current = self.parent if not include_self else self
+        
+        if include_self and current == self:
+            ancestors.append(self)
+            current = self.parent
+        
+        while current:
+            ancestors.insert(0, current)
+            current = current.parent
+            if len(ancestors) > 10:  # Prevenir loops infinitos
+                break
+        
+        return ancestors
     
     def get_children_count(self):
         """Obtener el número de hijos directos"""
@@ -134,11 +182,12 @@ class CategoriaTratamiento(MPTTModel):
     
     def get_descendants_count(self):
         """Obtener el número total de descendientes"""
-        return self.get_descendants().count()
+        return len(self.get_descendants())
     
     def get_treatments_count(self):
         """Obtener el número de tratamientos en esta categoría y subcategorías"""
-        descendant_ids = self.get_descendants(include_self=True).values_list('id', flat=True)
+        from .models import Tratamiento  # Evitar import circular
+        descendant_ids = [d.id for d in self.get_descendants(include_self=True)]
         return Tratamiento.objects.filter(categoria__id__in=descendant_ids, activo=True).count()
     
     def is_leaf(self):
@@ -147,8 +196,9 @@ class CategoriaTratamiento(MPTTModel):
     
     def get_breadcrumbs(self):
         """Obtener breadcrumbs para navegación"""
-        return [{'id': str(cat.id), 'nombre': cat.nombre, 'slug': cat.slug} 
-                for cat in self.get_ancestors(include_self=True)]
+        ancestors = self.get_ancestors(include_self=True)
+        return [{'id': str(cat.id), 'nombre': cat.nombre, 'slug': cat.slug} for cat in ancestors]
+
 
 class Tratamiento(models.Model):
     """
@@ -268,20 +318,20 @@ class Tratamiento(models.Model):
     )
     
     # Timestamps
-    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Tratamiento"
         verbose_name_plural = "Tratamientos"
-        ordering = ['categoria__tree_id', 'categoria__lft', 'orden_visualizacion', 'nombre']
+        ordering = ['categoria__orden', 'orden_visualizacion', 'nombre']
         indexes = [
-            models.Index(fields=['nombre'], name='tratamiento_nombre_idx'),
-            models.Index(fields=['codigo'], name='tratamiento_codigo_idx'),
-            models.Index(fields=['activo'], name='tratamiento_activo_idx'),
-            models.Index(fields=['categoria'], name='tratamiento_categoria_idx'),
-            models.Index(fields=['popular'], name='tratamiento_popular_idx'),
-            models.Index(fields=['precio_base'], name='tratamiento_precio_idx'),
+            models.Index(fields=['nombre'], name='tratamiento_nombre_simple_idx'),
+            models.Index(fields=['codigo'], name='tratamiento_codigo_simple_idx'),
+            models.Index(fields=['activo'], name='tratamiento_activo_simple_idx'),
+            models.Index(fields=['categoria'], name='tratamiento_categoria_simple_idx'),
+            models.Index(fields=['popular'], name='tratamiento_popular_simple_idx'),
+            models.Index(fields=['precio_base'], name='tratamiento_precio_simple_idx'),
         ]
     
     def __str__(self):

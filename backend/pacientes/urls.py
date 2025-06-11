@@ -4,6 +4,9 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'pacientes', views.PacienteViewSet)
+router.register(r'expedientes-medicos', views.ExpedienteMedicoViewSet)
+router.register(r'bitacora-citas', views.BitacoraCitaViewSet)
+router.register(r'imagenes-medicas', views.ImagenMedicaViewSet)
 
 app_name = 'pacientes'
 

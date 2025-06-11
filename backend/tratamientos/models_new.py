@@ -87,8 +87,8 @@ class CategoriaTratamiento(MPTTModel):
     )
     
     # Timestamps
-    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class MPTTMeta:
         order_insertion_by = ['orden', 'nombre']
@@ -268,8 +268,8 @@ class Tratamiento(models.Model):
     )
     
     # Timestamps
-    fecha_creacion = models.DateTimeField(auto_now_add=True, null=True)
-    fecha_actualizacion = models.DateTimeField(auto_now=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
     
     class Meta:
         verbose_name = "Tratamiento"

@@ -324,5 +324,5 @@ const ReviewList = ({
   );
 };
 
-export { ReviewCard, ReviewList };
+export { ReviewCard };
 export default ReviewList;

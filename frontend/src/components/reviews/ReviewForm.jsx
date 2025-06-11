@@ -394,5 +394,5 @@ const QuickReviewForm = ({
   );
 };
 
-export { ReviewForm, QuickReviewForm };
+export { QuickReviewForm };
 export default ReviewForm;
