@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import GitHubLoginButton from '../components/auth/GitHubLoginButton';
-import DiscordLoginButton from '../components/auth/DiscordLoginButton';
 import RegistroDentista from '../components/RegistroDentista';
 
 const LoginPage = () => {
@@ -152,11 +151,6 @@ const LoginPage = () => {
               {/* GitHub OAuth */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
                 <GitHubLoginButton />
-              </div>
-
-              {/* Discord OAuth */}
-              <div className="border-2 border-dashed border-indigo-300 rounded-lg p-4 bg-indigo-50">
-                <DiscordLoginButton />
               </div>
 
               {/* Demo access */}
