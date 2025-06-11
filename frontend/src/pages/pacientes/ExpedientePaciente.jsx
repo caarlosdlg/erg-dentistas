@@ -16,10 +16,13 @@ const ExpedientePaciente = () => {
   const [editedData, setEditedData] = useState({});
 
   useEffect(() => {
-    if (id) {
+    if (id && id !== 'undefined') {
       loadPaciente();
+    } else if (id === 'undefined' || !id) {
+      // Redirect back to patients list if ID is undefined
+      navigate('/pacientes');
     }
-  }, [id]);
+  }, [id, navigate]);
 
   const loadPaciente = async () => {
     try {

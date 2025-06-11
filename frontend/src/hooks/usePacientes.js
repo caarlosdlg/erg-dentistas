@@ -39,6 +39,11 @@ export const usePacientes = () => {
   };
 
   const getPaciente = async (id) => {
+    if (!id || id === 'undefined') {
+      setError('ID de paciente inválido');
+      return null;
+    }
+    
     setLoading(true);
     setError(null);
     
@@ -64,6 +69,8 @@ export const usePacientes = () => {
     setError(null);
     
     try {
+      console.log('Sending patient data:', pacienteData);
+      
       const response = await fetch(`${API_BASE_URL}/pacientes/`, {
         method: 'POST',
         headers: {
@@ -72,9 +79,12 @@ export const usePacientes = () => {
         body: JSON.stringify(pacienteData),
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || 'Error creating patient');
+        console.error('Error response:', errorData);
+        throw new Error(errorData.detail || JSON.stringify(errorData) || 'Error creating patient');
       }
       
       const newPaciente = await response.json();

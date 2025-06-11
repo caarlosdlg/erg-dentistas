@@ -33,12 +33,13 @@ class PacienteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paciente
         fields = [
-            'nombre', 'apellido_paterno', 'apellido_materno',
+            'id', 'nombre', 'apellido_paterno', 'apellido_materno',
             'fecha_nacimiento', 'sexo', 'telefono', 'email', 'direccion',
             'tipo_sangre', 'alergias', 'medicamentos', 'enfermedades_cronicas',
             'contacto_emergencia_nombre', 'contacto_emergencia_telefono', 
-            'contacto_emergencia_relacion'
+            'contacto_emergencia_relacion', 'numero_expediente', 'fecha_registro'
         ]
+        read_only_fields = ['id', 'numero_expediente', 'fecha_registro']
     
     def validate_email(self, value):
         if Paciente.objects.filter(email=value).exists():
