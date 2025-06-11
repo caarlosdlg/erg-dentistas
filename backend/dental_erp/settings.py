@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'reviews',
     'imagenes',
     'inventario',
+    'emails',  # Nueva app para emails
 ]
 
 MIDDLEWARE = [

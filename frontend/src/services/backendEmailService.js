@@ -12,69 +12,31 @@ class BackendEmailService {
    */
   async sendWelcomeEmail(paciente) {
     try {
-      // Since the backend doesn't have a specific welcome email endpoint,
-      // we'll use the general email service with welcome content
-      const emailData = {
-        to_email: paciente.email,
-        subject: `¡Bienvenido/a a nuestra Clínica Dental, ${paciente.nombre_completo}!`,
-        patient_name: paciente.nombre_completo,
-        message: `Estimado/a ${paciente.nombre_completo},
+      console.log('📧 Enviando email de bienvenida vía backend...', paciente);
 
-¡Bienvenido/a a nuestra clínica dental!
-
-Nos complace enormemente darle la bienvenida a nuestra familia de pacientes. En nuestra clínica dental, nos comprometemos a brindarle la mejor atención y cuidado para su salud bucal.
-
-Sus datos de paciente:
-- Nombre: ${paciente.nombre_completo}
-- Número de Expediente: ${paciente.numero_expediente || 'Se asignará en su primera visita'}
-- Email: ${paciente.email}
-${paciente.telefono ? `- Teléfono: ${paciente.telefono}` : ''}
-
-Nuestros servicios incluyen:
-• Consultas Generales y Diagnóstico
-• Limpieza Dental Profesional
-• Tratamientos de Ortodoncia
-• Endodoncia (Tratamiento de Conducto)
-• Implantes Dentales
-• Blanqueamiento Dental
-• Cirugía Oral
-• Odontología Preventiva
-
-Información de contacto:
-📞 Teléfono: +52 55 1234 5678
-📧 Email: info@clinicadental.com
-📍 Dirección: Av. Principal #123, Col. Centro
-⏰ Horarios: Lun-Vie 9:00-18:00, Sáb 9:00-14:00
-
-Si tiene alguna pregunta o necesita agendar una cita, no dude en contactarnos. Estamos aquí para ayudarle a mantener su sonrisa saludable y brillante.
-
-¡Esperamos verle pronto en nuestra clínica!
-
-Saludos cordiales,
-Equipo de la Clínica Dental`
-      };
-
-      console.log('📧 Enviando email de bienvenida vía backend...', emailData);
-
-      const response = await fetch(`${API_BASE}/emails/send-confirmation/`, {
+      const response = await fetch(`${API_BASE}/emails/send-welcome/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(emailData)
+        body: JSON.stringify({
+          email: paciente.email,
+          nombre_completo: paciente.nombre_completo,
+          telefono: paciente.telefono || ''
+        })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${errorData.message || 'Error desconocido'}`);
+        throw new Error(`Error ${response.status}: ${errorData.error || 'Error desconocido'}`);
       }
 
       const result = await response.json();
       console.log('✅ Email de bienvenida enviado exitosamente:', result);
       
       return {
-        success: true,
-        message: 'Email de bienvenida enviado correctamente',
+        success: result.success || true,
+        message: result.message || 'Email de bienvenida enviado correctamente',
         data: result
       };
 
@@ -92,57 +54,42 @@ Equipo de la Clínica Dental`
    */
   async sendReminderEmail(paciente, cita = null) {
     try {
-      const emailData = {
-        to_email: paciente.email,
-        subject: `Recordatorio de Cita - ${paciente.nombre_completo}`,
-        patient_name: paciente.nombre_completo,
-        message: `Estimado/a ${paciente.nombre_completo},
+      console.log('📧 Enviando email de recordatorio vía backend...', paciente);
 
-Le recordamos que tiene una cita próxima en nuestra clínica dental.
-
-Por favor confirme su asistencia respondiendo este email o llamando a nuestro consultorio.
-
-Información del paciente:
-- Expediente: ${paciente.numero_expediente}
-- Teléfono de contacto: ${paciente.telefono || 'No registrado'}
-
-${cita ? `Detalles de la cita:
-- Fecha: ${cita.fecha || 'Por confirmar'}
-- Hora: ${cita.hora || 'Por confirmar'}
-- Tipo: ${cita.tipo || 'Consulta'}
-- Motivo: ${cita.motivo || 'Consulta general'}` : ''}
-
-Por favor, llegue 15 minutos antes de su cita para completar cualquier papeleo necesario.
-
-Si necesita cancelar o reprogramar, contáctenos con al menos 24 horas de anticipación.
-
-Gracias por su preferencia.
-
-Saludos cordiales,
-Equipo de la Clínica Dental`
+      const requestBody = {
+        email: paciente.email,
+        nombre_completo: paciente.nombre_completo,
+        telefono: paciente.telefono || ''
       };
 
-      console.log('📧 Enviando email de recordatorio vía backend...', emailData);
+      // Agregar información de la cita si está disponible
+      if (cita) {
+        requestBody.cita = {
+          fecha_hora: cita.fecha_hora,
+          tratamiento: cita.tratamiento_descripcion || cita.tratamiento,
+          dentista: cita.dentista_nombre || cita.dentista
+        };
+      }
 
-      const response = await fetch(`${API_BASE}/emails/send-confirmation/`, {
+      const response = await fetch(`${API_BASE}/emails/send-reminder/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(emailData)
+        body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${errorData.message || 'Error desconocido'}`);
+        throw new Error(`Error ${response.status}: ${errorData.error || 'Error desconocido'}`);
       }
 
       const result = await response.json();
       console.log('✅ Email de recordatorio enviado exitosamente:', result);
       
       return {
-        success: true,
-        message: 'Email de recordatorio enviado correctamente',
+        success: result.success || true,
+        message: result.message || 'Email de recordatorio enviado correctamente',
         data: result
       };
 
@@ -160,34 +107,33 @@ Equipo de la Clínica Dental`
    */
   async sendGeneralEmail(paciente, subject, message) {
     try {
-      const emailData = {
-        to_email: paciente.email,
-        subject: subject,
-        patient_name: paciente.nombre_completo,
-        message: message
-      };
+      console.log('📧 Enviando email general vía backend...', paciente);
 
-      console.log('📧 Enviando email general vía backend...', emailData);
-
-      const response = await fetch(`${API_BASE}/emails/send-confirmation/`, {
+      const response = await fetch(`${API_BASE}/emails/send-general/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(emailData)
+        body: JSON.stringify({
+          email: paciente.email,
+          nombre_completo: paciente.nombre_completo,
+          telefono: paciente.telefono || '',
+          subject: subject,
+          message: message
+        })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${errorData.message || 'Error desconocido'}`);
+        throw new Error(`Error ${response.status}: ${errorData.error || 'Error desconocido'}`);
       }
 
       const result = await response.json();
       console.log('✅ Email general enviado exitosamente:', result);
       
       return {
-        success: true,
-        message: 'Email enviado correctamente',
+        success: result.success || true,
+        message: result.message || 'Email enviado correctamente',
         data: result
       };
 

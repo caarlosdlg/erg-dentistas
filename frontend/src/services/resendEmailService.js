@@ -66,12 +66,32 @@ class EmailService {
         body: JSON.stringify(emailData)
       });
 
+      console.log('📧 Respuesta del servidor:', response.status, response.statusText);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Error ${response.status}: ${errorData.message || 'Error desconocido'}`);
+        let errorMessage = `HTTP Error ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (jsonError) {
+          console.warn('No se pudo parsear el error JSON:', jsonError);
+          const textError = await response.text();
+          console.log('Respuesta como texto:', textError);
+          errorMessage = textError || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
 
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch (jsonError) {
+        console.error('Error parseando JSON de respuesta exitosa:', jsonError);
+        const textResponse = await response.text();
+        console.log('Respuesta como texto:', textResponse);
+        throw new Error('Respuesta del servidor no es JSON válido: ' + textResponse);
+      }
+
       console.log('✅ Email enviado exitosamente:', result);
       
       return {

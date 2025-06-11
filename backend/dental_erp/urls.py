@@ -30,6 +30,7 @@ urlpatterns = [
     path('', include('tratamientos.urls')),  # URLs de tratamientos
     path('', include('inventario.urls')), # URLs de inventario
     path('', include('dentistas.urls')),  # URLs de dentistas
+    path('', include('emails.urls')),     # URLs de emails
 ]
 
 # Servir archivos media en desarrollo
