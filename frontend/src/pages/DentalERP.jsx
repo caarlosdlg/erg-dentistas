@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './Dashboard';
 import PacientesReal from './PacientesReal';
 import Citas from './Citas';
+import CitasConSeleccionPacientes from './CitasConSeleccionPacientes';
+import CitasConEmailsCompleto from './CitasConEmailsCompleto';
+import CitasElegante from './CitasElegante';
 import Tratamientos from './Tratamientos';
 import Inventario from './Inventario';
 
@@ -43,6 +46,24 @@ const DentalERP = () => {
       description: 'Gestión de citas'
     },
     {
+      id: 'citas-rapidas',
+      label: 'Asignación Rápida',
+      icon: '⚡',
+      description: 'Asignación rápida de citas'
+    },
+    {
+      id: 'citas-emails',
+      label: 'Citas con Emails',
+      icon: '📧',
+      description: 'Citas con envío automático de emails'
+    },
+    {
+      id: 'citas-elegante',
+      label: '💎 Citas Elegante',
+      icon: '💎',
+      description: 'Interfaz elegante para gestión de citas'
+    },
+    {
       id: 'tratamientos',
       label: 'Tratamientos',
       icon: '🦷',
@@ -64,6 +85,12 @@ const DentalERP = () => {
         return <PacientesReal />;
       case 'citas':
         return <Citas />;
+      case 'citas-rapidas':
+        return <CitasConSeleccionPacientes />;
+      case 'citas-emails':
+        return <CitasConEmailsCompleto />;
+      case 'citas-elegante':
+        return <CitasElegante />;
       case 'tratamientos':
         return <Tratamientos />;
       case 'inventario':

@@ -130,6 +130,11 @@ class APIService {
     return this.request(`/pacientes/search/?${queryString}`);
   }
 
+  // Endpoint optimizado para dropdown de pacientes
+  async getPatientsForDropdown() {
+    return this.request('/pacientes/dropdown/');
+  }
+
   // Appointments API
   async getAppointments(params = {}) {
     const queryString = new URLSearchParams(params).toString();
@@ -140,11 +145,71 @@ class APIService {
     return this.request(`/citas/${id}/`);
   }
 
+  // Helper para validar UUID
+  isValidUUID(uuid) {
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidPattern.test(uuid);
+  }
+
+  // Helper para validar los datos de la cita
+  validateAppointmentData(appointmentData) {
+    // Validar paciente UUID
+    if (!this.isValidUUID(appointmentData.paciente)) {
+      throw new Error('ID de paciente inválido');
+    }
+
+    // Validar dentista UUID
+    if (!this.isValidUUID(appointmentData.dentista)) {
+      throw new Error('ID de dentista inválido');
+    }
+
+    // Validar tratamiento UUID
+    if (appointmentData.tratamiento && !this.isValidUUID(appointmentData.tratamiento)) {
+      throw new Error('ID de tratamiento inválido');
+    }
+
+    // Validar fecha y hora
+    if (!appointmentData.fecha_hora) {
+      throw new Error('Fecha y hora son requeridas');
+    }
+
+    return true;
+  }
+
   async createAppointment(appointmentData) {
-    return this.request('/citas/', {
-      method: 'POST',
-      body: JSON.stringify(appointmentData),
-    });
+    try {
+      // Validar los datos antes de enviar
+      this.validateAppointmentData(appointmentData);
+
+      return await this.request('/citas/', {
+        method: 'POST',
+        body: JSON.stringify(appointmentData)
+      });
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+      throw error;
+    }
+  }
+
+  async createAppointmentWithEmail(appointmentData) {
+    try {
+      // Validar los datos antes de enviar
+      this.validateAppointmentData(appointmentData);
+
+      // Agregar flag para envío automático de email
+      const dataWithEmail = {
+        ...appointmentData,
+        enviar_email_automatico: true
+      };
+
+      return await this.request('/citas/', {
+        method: 'POST',
+        body: JSON.stringify(dataWithEmail)
+      });
+    } catch (error) {
+      console.error('Error creating appointment with email:', error);
+      throw error;
+    }
   }
 
   async updateAppointment(id, appointmentData) {
@@ -163,6 +228,12 @@ class APIService {
 
   async confirmAppointment(id) {
     return this.request(`/citas/${id}/confirm/`, {
+      method: 'POST',
+    });
+  }
+
+  async sendConfirmationEmail(id) {
+    return this.request(`/citas/${id}/send_confirmation_email/`, {
       method: 'POST',
     });
   }
@@ -411,6 +482,12 @@ class APIService {
 
   async importData(dataType, file) {
     return this.uploadFile(`/import/${dataType}/`, file);
+  }
+
+  // Dentists API
+  async getDentists(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    return this.request(`/dentistas/${queryString ? `?${queryString}` : ''}`);
   }
 }
 

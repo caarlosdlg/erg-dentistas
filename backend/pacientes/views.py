@@ -93,6 +93,54 @@ class PacienteViewSet(viewsets.ModelViewSet):
         }
         
         return Response(medical_data)
+    
+    @action(detail=False, methods=['get'])
+    def dropdown(self, request):
+        """
+        Endpoint optimizado para dropdown de selección de pacientes
+        Retorna solo los campos necesarios para el selector
+        """
+        try:
+            # Obtener solo pacientes activos con email válido
+            pacientes = Paciente.objects.filter(
+                activo=True,
+                email__isnull=False
+            ).exclude(email='').values(
+                'id', 
+                'nombre', 
+                'apellido_paterno', 
+                'apellido_materno',
+                'email',
+                'telefono',
+                'fecha_nacimiento'
+            ).order_by('apellido_paterno', 'nombre')
+
+            # Formatear datos para el dropdown
+            pacientes_dropdown = []
+            for paciente in pacientes:
+                nombre_completo = f"{paciente['nombre']} {paciente['apellido_paterno']}"
+                if paciente['apellido_materno']:
+                    nombre_completo += f" {paciente['apellido_materno']}"
+                
+                pacientes_dropdown.append({
+                    'id': paciente['id'],
+                    'nombre_completo': nombre_completo,
+                    'email': paciente['email'],
+                    'telefono': paciente['telefono'] or '',
+                    'fecha_nacimiento': paciente['fecha_nacimiento'],
+                    'display_text': f"{nombre_completo} - {paciente['email']}"
+                })
+            
+            return Response({
+                'results': pacientes_dropdown,
+                'count': len(pacientes_dropdown)
+            })
+        
+        except Exception as e:
+            return Response(
+                {'error': f'Error al cargar pacientes: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class PacienteStatsView(APIView):
     """
