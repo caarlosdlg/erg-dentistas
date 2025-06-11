@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import emailService from '../../services/emailService';
 
-const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente }) => {
+const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente, onSendEmail }) => {
+  const [showEmailOptions, setShowEmailOptions] = useState(false);
   const {
     id,
     nombre_completo,
@@ -39,6 +41,54 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente }) => {
         alert('Error al eliminar el paciente. Por favor intenta de nuevo.');
         console.error('Error deleting patient:', error);
       }
+    }
+  };
+
+  const handleSendEmail = () => {
+    if (!email) {
+      alert('Este paciente no tiene email registrado');
+      return;
+    }
+    
+    if (onSendEmail) {
+      onSendEmail(paciente);
+    } else {
+      // Usar el nuevo servicio de emails
+      try {
+        emailService.enviarEmailPersonalizado(paciente);
+      } catch (error) {
+        alert('Error al preparar el email: ' + error.message);
+      }
+    }
+  };
+
+  const handleEmailOption = async (tipo) => {
+    setShowEmailOptions(false);
+    
+    if (!email) {
+      alert('Este paciente no tiene email registrado');
+      return;
+    }
+
+    try {
+      switch (tipo) {
+        case 'general':
+          await emailService.enviarEmailPersonalizado(paciente);
+          break;
+        case 'recordatorio':
+          await emailService.enviarRecordatorioCita(paciente);
+          break;
+        case 'seguimiento':
+          await emailService.enviarSeguimientoMedico(paciente);
+          break;
+        case 'manual':
+          emailService.abrirEmailManual(email, nombre_completo);
+          break;
+        default:
+          await emailService.enviarEmailPersonalizado(paciente);
+      }
+    } catch (error) {
+      alert('Error al preparar el email: ' + error.message);
     }
   };
 
@@ -146,6 +196,67 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente }) => {
           >
             Ver Expediente
           </button>
+          {email && (
+            <div className="relative">
+              <button
+                onClick={() => setShowEmailOptions(!showEmailOptions)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1"
+                title={`Enviar email a ${email}`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Dropdown de opciones de email */}
+              {showEmailOptions && (
+                <div className="absolute right-0 bottom-full mb-2 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+                  <div className="py-1">
+                    <button
+                      onClick={() => handleEmailOption('general')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                      Email General
+                    </button>
+                    <button
+                      onClick={() => handleEmailOption('recordatorio')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Recordatorio de Cita
+                    </button>
+                    <button
+                      onClick={() => handleEmailOption('seguimiento')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Seguimiento Médico
+                    </button>
+                    <button
+                      onClick={() => handleEmailOption('manual')}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                      Email Personalizado
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <button 
             onClick={handleDelete}
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
@@ -153,6 +264,14 @@ const TarjetaPaciente = ({ paciente, onVerExpediente, onDeletePaciente }) => {
             Borrar
           </button>
         </div>
+
+        {/* Overlay para cerrar dropdown */}
+        {showEmailOptions && (
+          <div 
+            className="fixed inset-0 z-0" 
+            onClick={() => setShowEmailOptions(false)}
+          />
+        )}
       </div>
     </div>
   );

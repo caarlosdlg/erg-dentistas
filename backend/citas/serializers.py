@@ -11,6 +11,7 @@ class CitaSerializer(serializers.ModelSerializer):
     Serializer completo para citas
     """
     paciente_nombre = serializers.SerializerMethodField()
+    paciente_email = serializers.SerializerMethodField()
     dentista_nombre = serializers.SerializerMethodField()
     tratamiento_nombre = serializers.SerializerMethodField()
     duracion_formateada = serializers.SerializerMethodField()
@@ -20,7 +21,7 @@ class CitaSerializer(serializers.ModelSerializer):
         model = Cita
         fields = [
             'id', 'paciente', 'dentista', 'tratamiento',
-            'paciente_nombre', 'dentista_nombre', 'tratamiento_nombre',
+            'paciente_nombre', 'paciente_email', 'dentista_nombre', 'tratamiento_nombre',
             'fecha_hora', 'fecha_formateada', 'duracion_estimada', 'duracion_formateada',
             'tipo_cita', 'estado', 'motivo_consulta', 'notas_dentista',
             'observaciones_previas', 'numero_cita', 'costo_estimado',
@@ -30,7 +31,7 @@ class CitaSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id', 'numero_cita', 'fecha_creacion', 'fecha_actualizacion',
-            'paciente_nombre', 'dentista_nombre', 'tratamiento_nombre',
+            'paciente_nombre', 'paciente_email', 'dentista_nombre', 'tratamiento_nombre',
             'duracion_formateada', 'fecha_formateada'
         ]
     
@@ -38,6 +39,12 @@ class CitaSerializer(serializers.ModelSerializer):
         """Retorna el nombre completo del paciente"""
         if obj.paciente:
             return f"{obj.paciente.nombre} {obj.paciente.apellido_paterno} {obj.paciente.apellido_materno or ''}".strip()
+        return None
+    
+    def get_paciente_email(self, obj):
+        """Retorna el email del paciente"""
+        if obj.paciente:
+            return obj.paciente.email
         return None
     
     def get_dentista_nombre(self, obj):

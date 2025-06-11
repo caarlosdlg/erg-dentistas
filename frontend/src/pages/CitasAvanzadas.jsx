@@ -52,7 +52,7 @@ const CitasAvanzadas = () => {
     {
       id: '1',
       numero_cita: 'CIT-000001',
-      paciente: { nombre_completo: 'María González López' },
+      paciente: { nombre_completo: 'María González López', email: 'maria.gonzalez@email.com' },
       dentista: { nombre_completo: 'Dr. Juan Pérez' },
       tratamiento: { nombre: 'Limpieza Dental' },
       fecha_hora: '2024-06-09T09:00:00',
@@ -66,7 +66,7 @@ const CitasAvanzadas = () => {
     {
       id: '2',
       numero_cita: 'CIT-000002',
-      paciente: { nombre_completo: 'Carlos Martínez Ruiz' },
+      paciente: { nombre_completo: 'Carlos Martínez Ruiz', email: 'carlos.martinez@email.com' },
       dentista: { nombre_completo: 'Dra. Sofia Mendoza' },
       tratamiento: { nombre: 'Endodoncia' },
       fecha_hora: '2024-06-09T11:00:00',
@@ -432,6 +432,13 @@ const CitasAvanzadas = () => {
                               <h4 className="font-semibold text-gray-900">
                                 {appointment.paciente.nombre_completo}
                               </h4>
+                              {appointment.paciente.email && (
+                                <p className="text-sm text-blue-600 flex items-center gap-1">
+                                  📧 <a href={`mailto:${appointment.paciente.email}`} className="hover:underline">
+                                    {appointment.paciente.email}
+                                  </a>
+                                </p>
+                              )}
                               <p className="text-sm text-gray-600">
                                 {appointment.tratamiento.nombre} • {appointment.duracion_estimada} min
                               </p>
@@ -634,6 +641,14 @@ const CitasAvanzadas = () => {
                   <h4 className="font-semibold text-gray-900 mb-3">Información del Paciente</h4>
                   <div className="space-y-2">
                     <p><strong>Nombre:</strong> {selectedAppointment.paciente.nombre_completo}</p>
+                    {selectedAppointment.paciente.email && (
+                      <p><strong>Email:</strong> 
+                        <a href={`mailto:${selectedAppointment.paciente.email}`} 
+                           className="text-blue-600 hover:underline ml-2">
+                          {selectedAppointment.paciente.email}
+                        </a>
+                      </p>
+                    )}
                     <p><strong>Tratamiento:</strong> {selectedAppointment.tratamiento.nombre}</p>
                     <p><strong>Motivo:</strong> {selectedAppointment.motivo_consulta}</p>
                   </div>
@@ -685,6 +700,16 @@ const CitasAvanzadas = () => {
                 <Button variant="outline" onClick={() => setSelectedAppointment(null)}>
                   Cerrar
                 </Button>
+                {selectedAppointment.paciente.email && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      window.open(`mailto:${selectedAppointment.paciente.email}?subject=Cita ${selectedAppointment.numero_cita}&body=Estimado/a ${selectedAppointment.paciente.nombre_completo}, le escribo en relación a su cita programada.`);
+                    }}
+                  >
+                    📧 Enviar Email
+                  </Button>
+                )}
                 <Button variant="secondary">
                   Reagendar
                 </Button>

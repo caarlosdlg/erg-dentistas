@@ -109,6 +109,39 @@ const Pacientes = () => {
     }
   };
 
+  const handleSendEmail = async (paciente) => {
+    if (!paciente.email) {
+      alert('Este paciente no tiene email registrado');
+      return;
+    }
+
+    try {
+      // Crear un email personalizado para el paciente
+      const subject = `Comunicación desde Clínica Dental - ${paciente.nombre_completo}`;
+      const body = `Estimado/a ${paciente.nombre_completo},
+
+Esperamos que se encuentre bien. Nos ponemos en contacto desde la clínica dental para...
+
+Datos del paciente:
+- Expediente: ${paciente.numero_expediente}
+- Email: ${paciente.email}
+- Teléfono: ${paciente.telefono || 'No registrado'}
+
+Saludos cordiales,
+Equipo de la Clínica Dental`;
+
+      // Abrir el cliente de email con el contenido predefinido
+      const mailto = `mailto:${paciente.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.open(mailto);
+
+      console.log(`📧 Abriendo email para paciente: ${paciente.nombre_completo} (${paciente.email})`);
+      
+    } catch (error) {
+      console.error('Error al preparar email:', error);
+      alert('Error al abrir el cliente de email');
+    }
+  };
+
   const handleNuevoPaciente = () => {
     navigate('/pacientes/nuevo');
   };
@@ -292,6 +325,7 @@ const Pacientes = () => {
                 paciente={paciente}
                 onVerExpediente={handleVerExpediente}
                 onDeletePaciente={handleDeletePaciente}
+                onSendEmail={handleSendEmail}
               />
             ))}
           </div>

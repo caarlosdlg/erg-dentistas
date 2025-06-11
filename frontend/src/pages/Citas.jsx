@@ -58,6 +58,7 @@ const Citas = () => {
       const transformedAppointments = response.map(cita => ({
         id: cita.id,
         patientName: cita.paciente_nombre || cita.paciente?.nombre_completo || 'Paciente no disponible',
+        patientEmail: cita.paciente_email || cita.paciente?.email || null,
         date: cita.fecha_hora ? cita.fecha_hora.split('T')[0] : '',
         time: cita.fecha_hora ? cita.fecha_hora.split('T')[1]?.substring(0, 5) : '',
         status: cita.estado || 'pendiente',
@@ -183,6 +184,27 @@ const Citas = () => {
         console.error('❌ Error al eliminar cita:', err);
         setError('Error al eliminar la cita: ' + err.message);
       }
+    }
+  };
+
+  const sendEmailToPatient = async (appointmentId, patientEmail) => {
+    if (!patientEmail) {
+      alert('Este paciente no tiene email registrado');
+      return;
+    }
+
+    try {
+      console.log(`📧 Enviando email de confirmación para cita ${appointmentId}`);
+      
+      // You can implement the actual email sending API call here
+      const response = await apiSimple.sendConfirmationEmail(appointmentId);
+      console.log('✅ Email enviado:', response);
+      
+      alert(`Email enviado exitosamente a ${patientEmail}`);
+      
+    } catch (err) {
+      console.error('❌ Error al enviar email:', err);
+      alert('Error al enviar el email: ' + err.message);
     }
   };
 
@@ -366,6 +388,14 @@ const Citas = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="text-lg font-semibold">{app.patientName}</h3>
+                    {app.patientEmail && (
+                      <div className="flex items-center gap-1 text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                        <span>📧</span>
+                        <a href={`mailto:${app.patientEmail}`} className="hover:underline">
+                          {app.patientEmail}
+                        </a>
+                      </div>
+                    )}
                     <span className={`text-sm px-2 py-1 rounded-full ${statusColors[app.status]}`}>
                       {statusLabels[app.status]}
                     </span>
@@ -398,6 +428,15 @@ const Citas = () => {
                   )}
                 </div>
                 <div className="flex flex-col gap-1 text-right ml-4">
+                  {app.patientEmail && (
+                    <button 
+                      onClick={() => sendEmailToPatient(app.id, app.patientEmail)} 
+                      className="text-blue-700 hover:underline text-sm whitespace-nowrap"
+                      title={`Enviar email a ${app.patientEmail}`}
+                    >
+                      📧 Enviar Email
+                    </button>
+                  )}
                   {(app.status === 'pendiente' || app.status === 'programada') && (
                     <>
                       <button 
