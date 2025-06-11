@@ -18,7 +18,7 @@ class CitaViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and additional functionality
     """
     queryset = Cita.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['estado', 'tipo_cita', 'dentista', 'paciente', 'fecha_hora']
     search_fields = ['numero_cita', 'paciente__nombre', 'paciente__apellido_paterno', 'motivo_consulta']

@@ -21,7 +21,7 @@ class TratamientoViewSet(viewsets.ModelViewSet):
     Provides CRUD operations and additional functionality
     """
     queryset = Tratamiento.objects.all()
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['categoria', 'activo', 'requiere_anestesia', 'sesiones_requeridas']
     search_fields = ['nombre', 'descripcion', 'codigo', 'categoria__nombre']
@@ -122,7 +122,7 @@ class CategoriaTratamientoViewSet(viewsets.ModelViewSet):
     """
     queryset = CategoriaTratamiento.objects.all()
     serializer_class = CategoriaTratamientoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow unauthenticated access for development
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_fields = ['activo']
     search_fields = ['nombre', 'descripcion']
