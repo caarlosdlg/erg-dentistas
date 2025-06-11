@@ -10,7 +10,10 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 
 from .models import Cita
 from .serializers import CitaSerializer, CitaListSerializer, CitaCreateSerializer
+from .email_service import AppointmentEmailService
+import logging
 
+logger = logging.getLogger(__name__)
 
 class CitaViewSet(viewsets.ModelViewSet):
     """
@@ -63,25 +66,116 @@ class CitaViewSet(viewsets.ModelViewSet):
                 pass
         
         return queryset.select_related('paciente', 'dentista', 'tratamiento')
-    
+
+    def create(self, request, *args, **kwargs):
+        """
+        Crear cita y opcionalmente enviar email de confirmación
+        """
+        try:
+            # Crear la cita usando el serializer
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            cita = serializer.save()
+            
+            # Auto-generar número de cita si no existe
+            if not cita.numero_cita:
+                cita.numero_cita = f"CIT-{cita.id.hex[:8].upper()}"
+                cita.save()
+            
+            response_data = CitaSerializer(cita).data
+            
+            # Verificar si se debe enviar email automáticamente
+            enviar_email = request.data.get('enviar_email_automatico', False)
+            
+            if enviar_email and cita.estado in ['programada', 'confirmada']:
+                try:
+                    email_service = AppointmentEmailService()
+                    email_enviado = email_service.send_appointment_confirmation_email(cita)
+                    
+                    response_data['email_enviado'] = email_enviado
+                    if email_enviado:
+                        logger.info(f"Email de confirmación enviado para cita {cita.numero_cita}")
+                    else:
+                        logger.warning(f"No se pudo enviar email para cita {cita.numero_cita}")
+                        
+                except Exception as email_error:
+                    logger.error(f"Error enviando email para cita {cita.numero_cita}: {str(email_error)}")
+                    response_data['email_enviado'] = False
+                    response_data['email_error'] = str(email_error)
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            logger.error(f"Error creando cita: {str(e)}")
+            return Response(
+                {'error': f'Error al crear la cita: {str(e)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     @action(detail=True, methods=['post'])
     def confirm(self, request, pk=None):
-        """Confirm an appointment"""
+        """Confirmar cita y enviar email automáticamente"""
         cita = self.get_object()
-        if cita.estado != 'programada':
+        if cita.estado not in ['programada']:
             return Response(
                 {'error': 'Solo se pueden confirmar citas programadas'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        cita.estado = 'confirmada'
-        cita.save()
+        try:
+            # Cambiar estado a confirmada
+            cita.estado = 'confirmada'
+            cita.save()
+            
+            # Enviar email de confirmación
+            email_service = AppointmentEmailService()
+            email_enviado = email_service.send_appointment_confirmation_email(cita)
+            
+            return Response({
+                'message': 'Cita confirmada exitosamente',
+                'estado': cita.estado,
+                'email_enviado': email_enviado,
+                'paciente_email': cita.paciente.email if cita.paciente else None
+            })
+            
+        except Exception as e:
+            logger.error(f"Error confirmando cita {cita.numero_cita}: {str(e)}")
+            return Response(
+                {'error': f'Error al confirmar la cita: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def send_confirmation_email(self, request, pk=None):
+        """
+        Enviar email de confirmación manualmente
+        """
+        cita = self.get_object()
         
-        return Response({
-            'message': 'Cita confirmada exitosamente',
-            'estado': cita.estado
-        })
-    
+        try:
+            email_service = AppointmentEmailService()
+            email_enviado = email_service.send_appointment_confirmation_email(cita)
+            
+            if email_enviado:
+                return Response({
+                    'message': 'Email de confirmación enviado exitosamente',
+                    'email_enviado': True,
+                    'destinatario': cita.paciente.email
+                })
+            else:
+                return Response({
+                    'message': 'No se pudo enviar el email',
+                    'email_enviado': False,
+                    'error': 'Error en el servicio de email'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as e:
+            logger.error(f"Error enviando email para cita {cita.numero_cita}: {str(e)}")
+            return Response({
+                'error': f'Error al enviar email: {str(e)}',
+                'email_enviado': False
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         """Cancel an appointment"""

@@ -139,15 +139,17 @@ class CitaListSerializer(serializers.ModelSerializer):
     Serializer simplificado para listado de citas
     """
     paciente_nombre = serializers.SerializerMethodField()
+    paciente_email = serializers.SerializerMethodField()
     dentista_nombre = serializers.SerializerMethodField()
+    tratamiento_nombre = serializers.SerializerMethodField()
     fecha_formateada = serializers.SerializerMethodField()
     
     class Meta:
         model = Cita
         fields = [
-            'id', 'numero_cita', 'paciente_nombre', 'dentista_nombre',
-            'fecha_hora', 'fecha_formateada', 'tipo_cita', 'estado',
-            'motivo_consulta', 'duracion_estimada'
+            'id', 'numero_cita', 'paciente_nombre', 'paciente_email', 'dentista_nombre',
+            'tratamiento_nombre', 'fecha_hora', 'fecha_formateada', 'tipo_cita', 'estado',
+            'motivo_consulta', 'duracion_estimada', 'costo_estimado'
         ]
     
     def get_paciente_nombre(self, obj):
@@ -156,10 +158,22 @@ class CitaListSerializer(serializers.ModelSerializer):
             return f"{obj.paciente.nombre} {obj.paciente.apellido_paterno} {obj.paciente.apellido_materno or ''}".strip()
         return None
     
+    def get_paciente_email(self, obj):
+        """Retorna el email del paciente"""
+        if obj.paciente:
+            return obj.paciente.email
+        return None
+    
     def get_dentista_nombre(self, obj):
         """Retorna el nombre completo del dentista"""
         if obj.dentista:
             return obj.dentista.nombre_completo
+        return None
+    
+    def get_tratamiento_nombre(self, obj):
+        """Retorna el nombre del tratamiento"""
+        if obj.tratamiento:
+            return obj.tratamiento.nombre
         return None
     
     def get_fecha_formateada(self, obj):
