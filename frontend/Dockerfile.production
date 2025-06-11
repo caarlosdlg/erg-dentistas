@@ -1,0 +1,30 @@
+FROM node:18-alpine AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+COPY vite.config.js ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
+COPY eslint.config.js ./
+COPY index.html ./
+
+# Instalar todas las dependencias incluyendo devDependencies
+RUN npm ci
+
+# Copiar el código fuente y archivos públicos
+COPY src/ ./src/
+COPY public/ ./public/
+
+# Configurar la URL del API para producción
+RUN echo "VITE_API_URL=https://cxrlos.fun" > .env.production
+
+RUN npm run build
+
+FROM nginx:1.21.6
+
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
