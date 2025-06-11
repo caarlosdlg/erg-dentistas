@@ -260,8 +260,7 @@ class EmailService {
     </html>
     `;
   }
-   * @returns {Promise<boolean>}
-   */
+   
   async enviarRecordatorioCita(paciente) {
     const asunto = `Recordatorio de Cita - ${paciente.nombre_completo}`;
     const mensaje = `Estimado/a ${paciente.nombre_completo},

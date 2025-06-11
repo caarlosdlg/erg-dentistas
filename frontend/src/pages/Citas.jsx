@@ -54,8 +54,11 @@ const Citas = () => {
       const response = await apiSimple.getCitas();
       console.log('📅 Citas cargadas:', response);
       
+      // Handle paginated response structure
+      const citasData = Array.isArray(response) ? response : (response.results || []);
+      
       // Transform API data to component format
-      const transformedAppointments = response.map(cita => ({
+      const transformedAppointments = citasData.map(cita => ({
         id: cita.id,
         patientName: cita.paciente_nombre || cita.paciente?.nombre_completo || 'Paciente no disponible',
         patientEmail: cita.paciente_email || cita.paciente?.email || null,
@@ -428,15 +431,7 @@ const Citas = () => {
                   )}
                 </div>
                 <div className="flex flex-col gap-1 text-right ml-4">
-                  {app.patientEmail && (
-                    <button 
-                      onClick={() => sendEmailToPatient(app.id, app.patientEmail)} 
-                      className="text-blue-700 hover:underline text-sm whitespace-nowrap"
-                      title={`Enviar email a ${app.patientEmail}`}
-                    >
-                      📧 Enviar Email
-                    </button>
-                  )}
+                  
                   {(app.status === 'pendiente' || app.status === 'programada') && (
                     <>
                       <button 
